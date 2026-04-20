@@ -1,0 +1,156 @@
+<div class="profile-wrapper">
+
+  <!-- Header -->
+  <div class="profile-header">
+    <div class="header-content">
+      <div class="logo">CodeSync</div>
+      <div class="header-actions">
+        <button class="btn-outline" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-container">
+
+    <div class="alert alert-success" *ngIf="successMessage">
+      {{ successMessage }}
+    </div>
+    <div class="alert alert-danger" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <div class="profile-grid">
+
+      <!-- Left Profile Card -->
+      <div class="profile-card">
+        <div class="avatar-section">
+          <div class="avatar">
+            <img *ngIf="user?.avatarUrl" [src]="user.avatarUrl" alt="Avatar"/>
+            <span *ngIf="!user?.avatarUrl">
+              {{ user?.fullName?.charAt(0) || 'U' }}
+            </span>
+          </div>
+          <h2>{{ user?.fullName }}</h2>
+          <p class="username">{{ user?.username }}</p>
+          <span class="role-badge">{{ user?.role }}</span>
+        </div>
+
+        <div class="profile-info">
+          <div class="info-item">
+            <span class="label">Email</span>
+            <span>{{ user?.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Bio</span>
+            <span>{{ user?.bio || 'No bio yet' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Joined</span>
+            <span>{{ user?.createdAt | date:'mediumDate' }}</span>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <button class="btn-primary" (click)="isEditing = !isEditing">
+            Edit Profile
+          </button>
+          <button class="btn-outline" (click)="isChangingPassword = !isChangingPassword">
+            Change Password
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Forms -->
+      <div class="profile-right">
+
+        <!-- Edit Profile -->
+        <div class="profile-section" *ngIf="isEditing">
+          <h3>Edit Profile</h3>
+          <form (ngSubmit)="updateProfile()">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" [(ngModel)]="profileData.fullName"
+                name="fullName" class="form-input"/>
+            </div>
+            <div class="form-group">
+              <label>Username</label>
+              <input type="text" [(ngModel)]="profileData.username"
+                name="username" class="form-input"/>
+            </div>
+            <div class="form-group">
+              <label>Avatar URL</label>
+              <input type="text" [(ngModel)]="profileData.avatarUrl"
+                name="avatarUrl" class="form-input" placeholder="https://..."/>
+            </div>
+            <div class="form-group">
+              <label>Bio</label>
+              <textarea [(ngModel)]="profileData.bio" name="bio"
+                class="form-input" rows="3"
+                placeholder="Tell us about yourself..."></textarea>
+            </div>
+            <div class="form-buttons">
+              <button type="submit" class="btn-primary" [disabled]="isLoading">
+                {{ isLoading ? 'Saving...' : 'Save Changes' }}
+              </button>
+              <button type="button" class="btn-outline"
+                (click)="isEditing = false">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Change Password -->
+        <div class="profile-section" *ngIf="isChangingPassword">
+          <h3>Change Password</h3>
+          <form (ngSubmit)="changePassword()">
+            <div class="form-group">
+              <label>Current Password</label>
+              <input type="password" [(ngModel)]="passwordData.currentPassword"
+                name="currentPassword" class="form-input"/>
+            </div>
+            <div class="form-group">
+              <label>New Password</label>
+              <input type="password" [(ngModel)]="passwordData.newPassword"
+                name="newPassword" class="form-input"
+                placeholder="Min 6 characters"/>
+            </div>
+            <div class="form-buttons">
+              <button type="submit" class="btn-primary" [disabled]="isLoading">
+                {{ isLoading ? 'Changing...' : 'Change Password' }}
+              </button>
+              <button type="button" class="btn-outline"
+                (click)="isChangingPassword = false">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Search Users -->
+        <div class="profile-section">
+          <h3>Search Developers</h3>
+          <div class="search-bar">
+            <input type="text" [(ngModel)]="searchQuery"
+              placeholder="Search by username..."
+              class="form-input" (keyup.enter)="searchUsers()"/>
+            <button class="btn-primary" (click)="searchUsers()">Search</button>
+          </div>
+          <div class="search-results" *ngIf="searchResults.length > 0">
+            <div class="user-card" *ngFor="let u of searchResults">
+              <div class="user-avatar">
+                {{ u.fullName?.charAt(0) || 'U' }}
+              </div>
+              <div class="user-info">
+                <strong>{{ u.fullName }}</strong>
+                <span>{{ u.username }}</span>
+                <span class="role-badge small">{{ u.role }}</span>
+              </div>
+            </div>
+          </div>
+          <p class="no-results"
+            *ngIf="searchResults.length === 0 && searchQuery">
+            No developers found for "{{ searchQuery }}"
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

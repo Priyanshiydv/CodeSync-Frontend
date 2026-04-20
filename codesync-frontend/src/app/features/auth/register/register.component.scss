@@ -1,0 +1,16 @@
+@use '../login/login.component.scss';
+
+.alert-success {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid var(--success);
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #81c784;
+}
+
+.form-select {
+  appearance: none;
+  cursor: pointer;
+}
