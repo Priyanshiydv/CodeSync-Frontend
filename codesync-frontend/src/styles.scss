@@ -1,0 +1,39 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary: #6c63ff;
+  --secondary: #3f3d56;
+  --dark: #1e1e2e;
+  --darker: #13131f;
+  --card: #2a2a3d;
+  --text: #ffffff;
+  --text-muted: #a0a0b0;
+  --success: #4caf50;
+  --danger: #f44336;
+  --warning: #ff9800;
+  --border: #3a3a5c;
+}
+
+body {
+  background-color: var(--dark);
+  color: var(--text);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+// Scrollbar styling
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--darker);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+}
