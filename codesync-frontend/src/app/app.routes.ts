@@ -67,5 +67,15 @@ export const routes: Routes = [
         .then(m => m.AdminComponent)
   },
 
+  {
+    path: 'editor/:projectId/:projectName',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+        import('./features/editor/editor.component')
+        .then(m => m.EditorComponent)
+    },
+
+  
+
   { path: '**', redirectTo: '/home' }
 ];
