@@ -1,1 +1,239 @@
-<p>dashboard works!</p>
+<div class="dash-wrap">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-box">&lt;/&gt;</div>
+      <span>CodeSync</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item active" routerLink="/dashboard">
+        <span class="nav-ico">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a class="nav-item" routerLink="/projects">
+        <span class="nav-ico">📁</span>
+        <span>My Projects</span>
+      </a>
+      <a class="nav-item" routerLink="/profile">
+        <span class="nav-ico">👤</span>
+        <span>Profile</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-ava">
+          {{ user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'D' }}
+        </div>
+        <div class="user-info">
+          <span class="uname">
+            {{ user?.fullName || user?.username || 'Developer' }}
+          </span>
+          <span class="urole">Developer</span>
+        </div>
+      </div>
+      <button class="logout-btn" (click)="logout()">
+        🚪 Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-area">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1>Dashboard</h1>
+        <p>Welcome back,
+          {{ user?.fullName || user?.username || 'Developer' }}!
+        </p>
+      </div>
+      <button class="btn-create"
+        (click)="showCreateModal = true">
+        + New Project
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num">{{ myProjects.length }}</div>
+        <div class="stat-lbl">My Projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">{{ publicProjects.length }}</div>
+        <div class="stat-lbl">Public Projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">{{ totalStars }}</div>
+        <div class="stat-lbl">Total Stars</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">DEV</div>
+        <div class="stat-lbl">Your Role</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn"
+        [class.active]="activeTab === 'my'"
+        (click)="activeTab = 'my'">
+        My Projects
+      </button>
+      <button class="tab-btn"
+        [class.active]="activeTab === 'public'"
+        (click)="activeTab = 'public'">
+        Explore Public
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-box" *ngIf="loading">
+      <div class="spin"></div>
+    </div>
+
+    <!-- My Projects -->
+    <div *ngIf="!loading && activeTab === 'my'">
+      <div class="empty-state"
+        *ngIf="myProjects.length === 0">
+        <div class="empty-ico">📁</div>
+        <h3>No projects yet</h3>
+        <p>Create your first project to get started!</p>
+        <button class="btn-create"
+          (click)="showCreateModal = true">
+          + Create Project
+        </button>
+      </div>
+
+      <div class="proj-grid" *ngIf="myProjects.length > 0">
+        <div class="proj-card"
+          *ngFor="let p of myProjects">
+          <div class="proj-header">
+            <div>
+              <div class="proj-name">{{ p.name }}</div>
+              <span class="lang-tag">{{ p.language }}</span>
+            </div>
+            <span class="vis-badge"
+              [class.private]="p.visibility === 'PRIVATE'">
+              {{ p.visibility }}
+            </span>
+          </div>
+          <p class="proj-desc">
+            {{ p.description || 'No description' }}
+          </p>
+          <div class="proj-stats">
+            <span>⭐ {{ p.starCount || 0 }}</span>
+            <span>🍴 {{ p.forkCount || 0 }}</span>
+            <span>{{ p.createdAt | date:'mediumDate' }}</span>
+          </div>
+          <div class="proj-actions">
+            <button class="btn-sm btn-danger"
+              (click)="deleteProject(p.projectId)">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Public Projects -->
+    <div *ngIf="!loading && activeTab === 'public'">
+      <div class="proj-grid">
+        <div class="proj-card"
+          *ngFor="let p of publicProjects">
+          <div class="proj-header">
+            <div>
+              <div class="proj-name">{{ p.name }}</div>
+              <span class="lang-tag">{{ p.language }}</span>
+            </div>
+            <span class="vis-badge">PUBLIC</span>
+          </div>
+          <p class="proj-desc">
+            {{ p.description || 'No description' }}
+          </p>
+          <div class="proj-stats">
+            <span>⭐ {{ p.starCount || 0 }}</span>
+            <span>🍴 {{ p.forkCount || 0 }}</span>
+          </div>
+          <div class="proj-actions">
+            <button class="btn-sm btn-star"
+              (click)="starProject(p.projectId)">
+              ⭐ Star
+            </button>
+            <button class="btn-sm btn-fork"
+              (click)="forkProject(p.projectId)">
+              🍴 Fork
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Create Project Modal -->
+<div class="modal-overlay" *ngIf="showCreateModal">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🚀 Create New Project</h3>
+      <button (click)="showCreateModal = false"
+        class="close-btn">✕</button>
+    </div>
+
+    <div class="alert-error" *ngIf="errorMessage">
+      ⚠️ {{ errorMessage }}
+    </div>
+
+    <form (ngSubmit)="createProject()">
+      <div class="form-group">
+        <label>Project Name *</label>
+        <input type="text"
+          [(ngModel)]="newProject.name"
+          name="name"
+          placeholder="My Awesome Project"
+          required class="finput"/>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea
+          [(ngModel)]="newProject.description"
+          name="description"
+          placeholder="What is this project about?"
+          class="finput" rows="3">
+        </textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Language</label>
+          <select [(ngModel)]="newProject.language"
+            name="language" class="finput">
+            <option *ngFor="let l of languages"
+              [value]="l">{{ l }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Visibility</label>
+          <select [(ngModel)]="newProject.visibility"
+            name="visibility" class="finput">
+            <option value="PUBLIC">🌍 Public</option>
+            <option value="PRIVATE">🔒 Private</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel"
+          (click)="showCreateModal = false">
+          Cancel
+        </button>
+        <button type="submit" class="btn-create">
+          Create Project
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

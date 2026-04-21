@@ -1,1 +1,210 @@
-<p>admin works!</p>
+<div class="dash-wrap">
+
+  <!-- Sidebar -->
+  <aside class="sidebar admin-sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-box">&lt;/&gt;</div>
+      <span>CodeSync</span>
+    </div>
+    <div class="admin-badge">ADMIN PANEL</div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item"
+        [class.active]="activeTab === 'users'"
+        (click)="switchTab('users')">
+        <span class="nav-ico">&#128101;</span>
+        <span>Manage Users</span>
+      </button>
+      <button class="nav-item"
+        [class.active]="activeTab === 'projects'"
+        (click)="switchTab('projects')">
+        <span class="nav-ico">&#128193;</span>
+        <span>All Projects</span>
+      </button>
+      <button class="nav-item"
+        [class.active]="activeTab === 'languages'"
+        (click)="switchTab('languages')">
+        <span class="nav-ico">&#128296;</span>
+        <span>Languages</span>
+      </button>
+      <button class="nav-item"
+        [class.active]="activeTab === 'broadcast'"
+        (click)="activeTab = 'broadcast'">
+        <span class="nav-ico">&#128226;</span>
+        <span>Broadcast</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-ava admin-ava">
+          {{ user?.fullName?.charAt(0) || 'A' }}
+        </div>
+        <div class="user-info">
+          <span class="uname">{{ user?.fullName || 'Admin' }}</span>
+          <span class="urole admin-role">ADMIN</span>
+        </div>
+      </div>
+      <button class="logout-btn" (click)="logout()">
+        &#128682; Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-area">
+
+    <div class="topbar">
+      <div>
+        <h1>Admin Dashboard</h1>
+        <p>Platform management and monitoring</p>
+      </div>
+    </div>
+
+    <!-- Users Tab -->
+    <div *ngIf="activeTab === 'users'">
+      <div class="section-title">
+        <h2>All Users</h2>
+        <span class="count-badge">{{ users.length }}</span>
+      </div>
+
+      <div class="loading-box" *ngIf="loading">
+        <div class="spin"></div>
+      </div>
+
+      <div class="table-wrap" *ngIf="!loading">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Provider</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of users">
+              <td>
+                <div class="user-cell">
+                  <div class="mini-ava">
+                    {{ u.fullName?.charAt(0) || 'U' }}
+                  </div>
+                  <span>{{ u.fullName }}</span>
+                </div>
+              </td>
+              <td>{{ u.email }}</td>
+              <td><span class="role-pill">{{ u.role }}</span></td>
+              <td>{{ u.provider || 'LOCAL' }}</td>
+              <td>
+                <span class="status-pill"
+                  [class.inactive]="!u.isActive">
+                  {{ u.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn-sm btn-danger"
+                  *ngIf="u.isActive"
+                  (click)="deactivateUser(u.userId)">
+                  Deactivate
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="empty-msg" *ngIf="users.length === 0">
+          No users found
+        </p>
+      </div>
+    </div>
+
+    <!-- Projects Tab -->
+    <div *ngIf="activeTab === 'projects'">
+      <div class="section-title">
+        <h2>All Projects</h2>
+        <span class="count-badge">{{ projects.length }}</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Language</th>
+              <th>Visibility</th>
+              <th>Stars</th>
+              <th>Forks</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of projects">
+              <td>{{ p.name }}</td>
+              <td><span class="lang-tag">{{ p.language }}</span></td>
+              <td>{{ p.visibility }}</td>
+              <td>&#11088; {{ p.starCount || 0 }}</td>
+              <td>&#127860; {{ p.forkCount || 0 }}</td>
+              <td>
+                <button class="btn-sm btn-danger"
+                  (click)="deleteProject(p.projectId)">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="empty-msg" *ngIf="projects.length === 0">
+          No projects found
+        </p>
+      </div>
+    </div>
+
+    <!-- Languages Tab -->
+    <div *ngIf="activeTab === 'languages'">
+      <div class="section-title">
+        <h2>Supported Languages</h2>
+        <span class="count-badge">{{ languages.length }}</span>
+      </div>
+      <div class="lang-grid">
+        <div class="lang-card" *ngFor="let l of languages">
+          <div class="lang-name">{{ l.name }}</div>
+          <div class="lang-version">v{{ l.version }}</div>
+          <div class="lang-ext">{{ l.fileExtension }}</div>
+          <span class="status-pill"
+            [class.inactive]="!l.isEnabled">
+            {{ l.isEnabled ? 'Enabled' : 'Disabled' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Broadcast Tab -->
+    <div *ngIf="activeTab === 'broadcast'">
+      <div class="section-title">
+        <h2>Send Platform Notification</h2>
+      </div>
+      <div class="broadcast-form">
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text"
+            [(ngModel)]="broadcastMsg.title"
+            name="title"
+            placeholder="Notification title"
+            class="finput"/>
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea [(ngModel)]="broadcastMsg.message"
+            name="message" rows="4"
+            placeholder="Your message to all users..."
+            class="finput"></textarea>
+        </div>
+        <button class="btn-broadcast"
+          (click)="sendBroadcast()">
+          &#128226; Send to All Users
+        </button>
+      </div>
+    </div>
+
+  </main>
+</div>

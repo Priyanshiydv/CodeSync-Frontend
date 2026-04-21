@@ -1,204 +1,191 @@
-<div class="home-wrapper">
+<div class="home">
 
   <!-- Navbar -->
   <nav class="navbar">
-    <div class="nav-content">
-      <div class="nav-logo">
-        <span class="logo-icon">&lt;/&gt;</span>
-        <span class="logo-text">CodeSync</span>
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <div class="brand-box">&lt;/&gt;</div>
+        <span>CodeSync</span>
       </div>
-      <div class="nav-links">
-        <a routerLink="/home" class="nav-link active">Browse</a>
-        <a routerLink="/auth/login" class="nav-link"
-          *ngIf="!isLoggedIn">Login</a>
-        <a routerLink="/auth/register" class="nav-link btn-register"
-          *ngIf="!isLoggedIn">Register</a>
-        <button class="btn-dashboard"
-          *ngIf="isLoggedIn" (click)="goToDashboard()">
-          Go to Dashboard
-        </button>
+      <div class="nav-right">
+        <a routerLink="/home" class="nav-link">Browse</a>
+        <ng-container *ngIf="!isLoggedIn">
+          <a routerLink="/auth/login" class="nav-link">Login</a>
+          <a routerLink="/auth/register" class="nav-cta">
+            Get Started
+          </a>
+        </ng-container>
+        <ng-container *ngIf="isLoggedIn">
+          <button class="nav-link nav-btn"
+            (click)="goToDashboard()">
+            Dashboard
+          </button>
+          <button class="nav-logout"
+            (click)="logout()">
+            Logout
+          </button>
+        </ng-container>
       </div>
     </div>
   </nav>
 
-  <!-- Hero Section -->
-  <div class="hero">
-    <div class="hero-content">
-      <div class="hero-badge">Online Code Collaboration Platform</div>
-      <h1>Code Together.<br/>Build Faster.<br/>
-        <span class="highlight">Ship Smarter.</span>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="hero-pill">
+        🚀 Online Code Collaboration Platform
+      </span>
+      <h1>
+        Code Together.<br/>
+        Build Faster.<br/>
+        <span class="grad-text">Ship Smarter.</span>
       </h1>
-      <p>Write, execute, review, and version-control code
-        in real time with your teammates — all from
-        a browser-based live editor.</p>
-      <div class="hero-buttons">
-        <a routerLink="/auth/register" class="btn-primary-lg"
+      <p>Write, execute, review and version-control code
+        in real time with your teammates — all from a
+        browser-based live editor.</p>
+      <div class="hero-btns">
+        <a routerLink="/auth/register"
+          class="btn-hero-primary"
           *ngIf="!isLoggedIn">
-          Get Started Free
+          Start Coding Free
         </a>
-        <button class="btn-primary-lg"
-          *ngIf="isLoggedIn" (click)="goToDashboard()">
+        <button class="btn-hero-primary"
+          *ngIf="isLoggedIn"
+          (click)="goToDashboard()">
           Go to Dashboard
         </button>
-        <a routerLink="/home" class="btn-secondary-lg">
-          Browse Projects
+        <a routerLink="/home" class="btn-hero-sec">
+          Explore Projects
         </a>
       </div>
-
-      <!-- Stats -->
-      <div class="hero-stats">
-        <div class="stat">
-          <span class="stat-num">14+</span>
-          <span class="stat-lbl">Languages</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">Real-time</span>
-          <span class="stat-lbl">Collaboration</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">Docker</span>
-          <span class="stat-lbl">Sandbox</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">JWT</span>
-          <span class="stat-lbl">Secure Auth</span>
-        </div>
+      <div class="hero-chips">
+        <span class="chip">14+ Languages</span>
+        <span class="chip">Real-time Collab</span>
+        <span class="chip">Docker Sandbox</span>
+        <span class="chip">JWT Auth</span>
+        <span class="chip">SignalR</span>
+        <span class="chip">Version Control</span>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- Features Section -->
-  <div class="features">
-    <h2>Everything you need to collaborate</h2>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">&#9881;</div>
-        <h3>Live Code Editor</h3>
-        <p>Monaco Editor with syntax highlighting,
-          auto-complete and bracket matching</p>
+  <!-- Features -->
+  <section class="features">
+    <div class="section-inner">
+      <div class="section-head">
+        <h2>Everything you need to collaborate</h2>
+        <p>A complete platform for modern dev teams</p>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">&#128101;</div>
-        <h3>Real-time Collaboration</h3>
-        <p>Co-edit with cursor presence, SignalR
-          powered live sessions</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">&#9654;</div>
-        <h3>Code Execution</h3>
-        <p>Run code in isolated Docker sandboxes
-          supporting 14 languages</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">&#128196;</div>
-        <h3>Version Control</h3>
-        <p>Git-inspired snapshots with SHA-256
-          integrity and diff comparison</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">&#128172;</div>
-        <h3>Code Review</h3>
-        <p>Inline comments with threading,
-          resolve workflow and mentions</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">&#128276;</div>
-        <h3>Notifications</h3>
-        <p>Real-time alerts for sessions,
-          comments and snapshots via SignalR</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Public Projects Section -->
-  <div class="projects-section">
-    <div class="projects-header">
-      <h2>Explore Public Projects</h2>
-      <p>Browse projects created by the community</p>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="search-filter">
-      <div class="search-box">
-        <span class="search-icon">&#128269;</span>
-        <input type="text" [(ngModel)]="searchQuery"
-          placeholder="Search projects..."
-          (input)="searchProjects()"
-          class="search-input"/>
-      </div>
-      <select [(ngModel)]="selectedLanguage"
-        (change)="filterByLanguage()"
-        class="filter-select">
-        <option value="">All Languages</option>
-        <option *ngFor="let lang of languages"
-          [value]="lang">{{ lang }}</option>
-      </select>
-      <button class="btn-clear"
-        *ngIf="searchQuery || selectedLanguage"
-        (click)="clearFilters()">
-        Clear
-      </button>
-    </div>
-
-    <!-- Loading -->
-    <div class="loading" *ngIf="isLoading">
-      <div class="spinner"></div>
-      <p>Loading projects...</p>
-    </div>
-
-    <!-- Projects Grid -->
-    <div class="projects-grid" *ngIf="!isLoading">
-      <div class="project-card"
-        *ngFor="let project of filteredProjects">
-        <div class="project-top">
-          <div class="project-name">{{ project.name }}</div>
-          <span class="lang-badge">{{ project.language }}</span>
-        </div>
-        <p class="project-desc">
-          {{ project.description || 'No description' }}
-        </p>
-        <div class="project-footer">
-          <span class="project-stat">
-            &#11088; {{ project.starCount || 0 }}
-          </span>
-          <span class="project-stat">
-            &#127860; {{ project.forkCount || 0 }}
-          </span>
-          <a routerLink="/auth/login"
-            class="btn-view" *ngIf="!isLoggedIn">
-            View Code
-          </a>
+      <div class="feat-grid">
+        <div class="feat-card"
+          *ngFor="let f of featureList">
+          <div class="feat-ico">{{ f.icon }}</div>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.desc }}</p>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- No results -->
-    <div class="no-results"
-      *ngIf="!isLoading && filteredProjects.length === 0">
-      <p>No projects found. Try different search terms.</p>
+  <!-- Projects -->
+  <section class="projects-sec">
+    <div class="section-inner">
+      <div class="section-head">
+        <h2>Explore Public Projects</h2>
+        <p>Browse open-source projects from the community</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <div class="search-wrap">
+          <span>🔍</span>
+          <input type="text"
+            [(ngModel)]="search"
+            (input)="filter()"
+            placeholder="Search projects..."
+            class="search-in"/>
+        </div>
+        <select [(ngModel)]="lang"
+          (change)="filter()"
+          class="lang-sel">
+          <option value="">All Languages</option>
+          <option *ngFor="let l of languages"
+            [value]="l">{{ l }}</option>
+        </select>
+        <button *ngIf="search || lang"
+          (click)="clear()"
+          class="clear-btn">
+          Clear
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading-box" *ngIf="loading">
+        <div class="spin"></div>
+        <p>Loading projects...</p>
+      </div>
+
+      <!-- Grid -->
+      <div class="proj-grid" *ngIf="!loading">
+        <div class="proj-card"
+          *ngFor="let p of filtered">
+          <div class="proj-top">
+            <span class="proj-name">{{ p.name }}</span>
+            <span class="lang-tag">{{ p.language }}</span>
+          </div>
+          <p class="proj-desc">
+            {{ p.description || 'No description' }}
+          </p>
+          <div class="proj-foot">
+            <span class="pstat">
+              ⭐ {{ p.starCount || 0 }}
+            </span>
+            <span class="pstat">
+              🍴 {{ p.forkCount || 0 }}
+            </span>
+            <div class="proj-actions">
+              <button class="action-btn"
+                (click)="starProject(p.projectId)"
+                *ngIf="isLoggedIn">
+                ⭐ Star
+              </button>
+              <button class="action-btn fork-btn"
+                (click)="forkProject(p.projectId)"
+                *ngIf="isLoggedIn">
+                🍴 Fork
+              </button>
+              <a routerLink="/auth/login"
+                class="action-btn"
+                *ngIf="!isLoggedIn">
+                View
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty"
+        *ngIf="!loading && filtered.length === 0">
+        <p>No projects found.</p>
+      </div>
     </div>
+  </section>
 
-    <!-- Guest CTA -->
-    <div class="guest-cta" *ngIf="!isLoggedIn">
-      <h3>Want to create your own projects?</h3>
-      <p>Join CodeSync and start collaborating today!</p>
-      <a routerLink="/auth/register" class="btn-primary-lg">
+  <!-- Guest CTA -->
+  <section class="cta-section" *ngIf="!isLoggedIn">
+    <div class="cta-inner">
+      <h2>Ready to start collaborating?</h2>
+      <p>Join CodeSync and build amazing things with your team</p>
+      <a routerLink="/auth/register"
+        class="btn-hero-primary">
         Create Free Account
       </a>
     </div>
-  </div>
+  </section>
 
   <!-- Footer -->
   <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-logo">
-        <span>&lt;/&gt;</span> CodeSync
-      </div>
-      <p>Code Together. Build Faster. Ship Smarter.</p>
-      <p class="footer-copy">
-        CodeSync Platform | 2026
-      </p>
-    </div>
+    <span class="footer-brand">&lt;/&gt; CodeSync</span>
+    <p>Code Together. Build Faster. Ship Smarter. © 2026</p>
   </footer>
-
 </div>

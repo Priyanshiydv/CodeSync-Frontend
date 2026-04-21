@@ -1,16 +1,23 @@
 @use '../login/login.component.scss';
 
 .alert-success {
-  background: rgba(76, 175, 80, 0.1);
+  background: rgba(76,175,80,0.1);
   border: 1px solid var(--success);
-  border-radius: 8px;
-  padding: 10px 15px;
+  border-radius: 10px;
+  padding: 12px 16px;
   margin-bottom: 20px;
   font-size: 13px;
   color: #81c784;
 }
 
-.form-select {
-  appearance: none;
-  cursor: pointer;
+.role-badge {
+  background: rgba(108,99,255,0.1);
+  border: 1px solid rgba(108,99,255,0.3);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+
+  strong { color: var(--primary); }
 }

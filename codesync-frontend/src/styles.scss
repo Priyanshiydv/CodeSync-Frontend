@@ -8,6 +8,7 @@
 
 :root {
   --primary: #6c63ff;
+  --primary-hover: #5a52e0;
   --secondary: #3f3d56;
   --dark: #1e1e2e;
   --darker: #13131f;
@@ -21,18 +22,13 @@
 }
 
 body {
-  background-color: var(--dark);
+  background-color: var(--darker);
   color: var(--text);
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-// Scrollbar styling
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--darker);
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--darker); }
 ::-webkit-scrollbar-thumb {
   background: var(--primary);
   border-radius: 3px;

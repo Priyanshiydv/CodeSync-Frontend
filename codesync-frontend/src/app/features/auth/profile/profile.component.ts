@@ -1,112 +1,88 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
 
   user: any = null;
-  isEditing = false;
-  isChangingPassword = false;
-  isLoading = false;
-  successMessage = '';
-  errorMessage = '';
-
-  profileData = {
-    fullName: '',
-    username: '',
-    avatarUrl: '',
-    bio: ''
-  };
-
-  passwordData = {
-    currentPassword: '',
-    newPassword: ''
-  };
-
+  editData = { fullName:'', username:'', avatarUrl:'', bio:'' };
+  passData = { currentPassword:'', newPassword:'' };
   searchQuery = '';
   searchResults: any[] = [];
+  isEditing = false;
+  isChangingPass = false;
+  loading = false;
+  success = '';
+  error = '';
 
-  constructor(
-    private authService: AuthService,
-    private router: Router) { }
+  constructor(private auth: AuthService) { }
 
-  ngOnInit() {
-    this.loadProfile();
-  }
+  ngOnInit() { this.loadProfile(); }
 
   loadProfile() {
-    this.authService.getProfile().subscribe({
+    this.auth.getProfile().subscribe({
       next: (res) => {
         this.user = res;
-        this.profileData = {
+        this.editData = {
           fullName: res.fullName || '',
           username: res.username || '',
           avatarUrl: res.avatarUrl || '',
           bio: res.bio || ''
         };
-      },
-      error: () => this.router.navigate(['/auth/login'])
+      }
     });
   }
 
-  updateProfile() {
-    this.isLoading = true;
-    this.authService.updateProfile(this.profileData).subscribe({
+  saveProfile() {
+    this.loading = true;
+    this.auth.updateProfile(this.editData).subscribe({
       next: () => {
-        this.isLoading = false;
+        this.loading = false;
         this.isEditing = false;
-        this.successMessage = 'Profile updated successfully!';
+        this.success = 'Profile updated!';
         this.loadProfile();
-        setTimeout(() => this.successMessage = '', 3000);
+        setTimeout(() => this.success = '', 3000);
       },
       error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Update failed!';
+        this.loading = false;
+        this.error = err.error?.message || 'Update failed!';
       }
     });
   }
 
   changePassword() {
-    this.isLoading = true;
-    this.authService.changePassword(this.passwordData).subscribe({
+    this.loading = true;
+    this.auth.changePassword(this.passData).subscribe({
       next: () => {
-        this.isLoading = false;
-        this.isChangingPassword = false;
-        this.successMessage = 'Password changed successfully!';
-        this.passwordData = { currentPassword: '', newPassword: '' };
-        setTimeout(() => this.successMessage = '', 3000);
+        this.loading = false;
+        this.isChangingPass = false;
+        this.success = 'Password changed!';
+        this.passData = { currentPassword:'', newPassword:'' };
+        setTimeout(() => this.success = '', 3000);
       },
       error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Password change failed!';
+        this.loading = false;
+        this.error = err.error?.message || 'Failed!';
       }
     });
   }
 
   searchUsers() {
     if (!this.searchQuery.trim()) return;
-    this.authService.searchUsers(this.searchQuery).subscribe({
+    this.auth.searchUsers(this.searchQuery).subscribe({
       next: (res) => this.searchResults = res,
       error: () => this.searchResults = []
     });
   }
 
-  logout() {
-    this.authService.logout().subscribe({
-      next: () => this.router.navigate(['/auth/login']),
-      error: () => {
-        localStorage.clear();
-        this.router.navigate(['/auth/login']);
-      }
-    });
-  }
+  logout() { this.auth.logout(); }
 }

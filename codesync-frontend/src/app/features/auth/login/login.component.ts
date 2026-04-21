@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -12,38 +12,25 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
+  data = { email: '', password: '' };
+  error = '';
+  loading = false;
+  showPass = false;
 
-  loginData = {
-    email: '',
-    password: ''
-  };
-
-  errorMessage = '';
-  isLoading = false;
-  showPassword = false;
-
-  constructor(
-    private authService: AuthService,
-    private router: Router) { }
+  constructor(private auth: AuthService) { }
 
   onLogin() {
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.authService.login(this.loginData).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-        // Redirect based on role automatically
-        this.authService.redirectByRole();
+    this.loading = true;
+    this.error = '';
+    this.auth.login(this.data).subscribe({
+      next: () => {
+        this.loading = false;
+        this.auth.redirectByRole();
       },
       error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Login failed!';
+        this.loading = false;
+        this.error = err.error?.message || 'Login failed!';
       }
     });
-  }
-
-  togglePassword() {
-    this.showPassword = !this.showPassword;
   }
 }
