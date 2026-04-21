@@ -1,0 +1,245 @@
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--darker);
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    .auth-left { display: none; }
+  }
+}
+
+.auth-left {
+  background: linear-gradient(
+    135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    background: rgba(108,99,255,0.08);
+    border-radius: 50%;
+    top: -100px; right: -100px;
+  }
+}
+
+.brand {
+  margin-bottom: 50px;
+
+  .brand-icon {
+    width: 60px; height: 60px;
+    background: var(--primary);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 8px;
+  }
+
+  p { color: rgba(255,255,255,0.6); font-size: 15px; }
+}
+
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.feat-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: rgba(255,255,255,0.8);
+  font-size: 14px;
+
+  .feat-icon {
+    width: 36px; height: 36px;
+    background: rgba(108,99,255,0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+}
+
+.auth-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+
+  .card-header {
+    margin-bottom: 28px;
+    h2 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+    p { color: var(--text-muted); font-size: 14px; }
+  }
+}
+
+.alert-error {
+  background: rgba(244,67,54,0.1);
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #ff6b6b;
+}
+
+.form-group {
+  margin-bottom: 18px;
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+}
+
+.input-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  .iicon {
+    position: absolute;
+    left: 13px;
+    font-size: 15px;
+    pointer-events: none;
+  }
+
+  .eye {
+    position: absolute;
+    right: 13px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+}
+
+.finput {
+  width: 100%;
+  padding: 12px 42px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  transition: border-color 0.2s;
+
+  &:focus { outline: none; border-color: var(--primary); }
+  &::placeholder { color: var(--text-muted); }
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 13px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 5px;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+
+  &:hover { background: var(--primary-hover); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.spinner-sm {
+  width: 20px; height: 20px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.divider {
+  text-align: center;
+  margin: 22px 0;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 0; right: 0;
+    height: 1px;
+    background: var(--border);
+  }
+
+  span {
+    background: var(--darker);
+    padding: 0 12px;
+    color: var(--text-muted);
+    font-size: 12px;
+    position: relative;
+  }
+}
+
+.oauth-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.oauth-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+
+  &:hover { border-color: var(--primary); }
+}
+
+.bottom-link {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+
+  a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+  }
+}
