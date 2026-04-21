@@ -10,23 +10,50 @@ export class VersionService {
   constructor(private http: HttpClient) {}
 
   createSnapshot(data: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}`, data);
+    return this.http.post<any>(this.baseUrl, data);
   }
 
-  getFileHistory(fileId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/history/${fileId}`);
+  getSnapshotById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${id}`);
   }
 
-  getLatestSnapshot(fileId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/latest/${fileId}`);
+  getByFile(fileId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/file/${fileId}`);
   }
 
-  restoreSnapshot(snapshotId: number): Observable<any> {
+  getByProject(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/project/${projectId}`);
+  }
+
+  getHistory(fileId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/history/${fileId}`);
+  }
+
+  getLatest(fileId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/latest/${fileId}`);
+  }
+
+  restoreSnapshot(id: number): Observable<any> {
     return this.http.post<any>(
-      `${this.baseUrl}/${snapshotId}/restore`, {});
+      `${this.baseUrl}/${id}/restore`, {});
   }
 
   diffSnapshots(id1: number, id2: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/diff/${id1}/${id2}`);
+    return this.http.get<any>(
+      `${this.baseUrl}/diff/${id1}/${id2}`);
+  }
+
+  createBranch(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/createBranch`, data);
+  }
+
+  tagSnapshot(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/tag`, data);
   }
 }
