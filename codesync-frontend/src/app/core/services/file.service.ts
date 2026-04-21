@@ -9,44 +9,60 @@ export class FileService {
 
   constructor(private http: HttpClient) {}
 
-  getFileTree(projectId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/tree/${projectId}`);
-  }
-
-  getFileById(fileId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/${fileId}`);
-  }
-
-  getFileContent(fileId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/${fileId}/content`);
-  }
-
   createFile(data: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}`, data);
+    return this.http.post<any>(this.baseUrl, data);
   }
 
   createFolder(data: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/createFolder`, data);
+    return this.http.post<any>(
+      `${this.baseUrl}/createFolder`, data);
   }
 
-  updateFileContent(fileId: number, data: any): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/${fileId}/content`, data);
+  getFileById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${id}`);
   }
 
-  renameFile(fileId: number, data: any): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}/${fileId}/rename`, data);
+  getFilesByProject(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/project/${projectId}`);
   }
 
-  deleteFile(fileId: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/${fileId}`);
+  getFileContent(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${id}/content`);
   }
 
-  restoreFile(fileId: number): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/${fileId}/restore`, {});
+  getFileTree(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/tree/${projectId}`);
   }
 
-  searchInProject(projectId: number, query: string): Observable<any[]> {
+  searchInProject(projectId: number,
+    query: string): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.baseUrl}/search/${projectId}?query=${query}`);
+  }
+
+  updateContent(id: number, data: any): Observable<any> {
+    return this.http.put<any>(
+      `${this.baseUrl}/${id}/content`, data);
+  }
+
+  renameFile(id: number, data: any): Observable<any> {
+    return this.http.put<any>(
+      `${this.baseUrl}/${id}/rename`, data);
+  }
+
+  moveFile(id: number, data: any): Observable<any> {
+    return this.http.put<any>(
+      `${this.baseUrl}/${id}/move`, data);
+  }
+
+  deleteFile(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/${id}`);
+  }
+
+  restoreFile(id: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/${id}/restore`, {});
   }
 }

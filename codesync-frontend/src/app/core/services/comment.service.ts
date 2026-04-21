@@ -10,28 +10,54 @@ export class CommentService {
   constructor(private http: HttpClient) {}
 
   addComment(data: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}`, data);
+    return this.http.post<any>(this.baseUrl, data);
   }
 
   getByFile(fileId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/file/${fileId}`);
+    return this.http.get<any[]>(
+      `${this.baseUrl}/file/${fileId}`);
   }
 
-  getByLine(fileId: number, line: number): Observable<any[]> {
+  getByProject(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/project/${projectId}`);
+  }
+
+  getById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${id}`);
+  }
+
+  getReplies(id: number): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/${id}/replies`);
+  }
+
+  getByLine(fileId: number,
+    line: number): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.baseUrl}/file/${fileId}/line/${line}`);
   }
 
-  getReplies(commentId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/${commentId}/replies`);
+  getCount(fileId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/file/${fileId}/count`);
   }
 
-  resolveComment(commentId: number): Observable<any> {
+  updateComment(id: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/${id}`, data);
+  }
+
+  resolveComment(id: number): Observable<any> {
     return this.http.put<any>(
-      `${this.baseUrl}/${commentId}/resolve`, {});
+      `${this.baseUrl}/${id}/resolve`, {});
   }
 
-  deleteComment(commentId: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}/${commentId}`);
+  unresolveComment(id: number): Observable<any> {
+    return this.http.put<any>(
+      `${this.baseUrl}/${id}/unresolve`, {});
+  }
+
+  deleteComment(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/${id}`);
   }
 }

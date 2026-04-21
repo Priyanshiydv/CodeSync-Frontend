@@ -9,23 +9,31 @@ export class ExecutionService {
 
   constructor(private http: HttpClient) {}
 
-  submitExecution(data: any): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/submit`, data);
+  submitCode(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/submit`, data);
   }
 
   getJobById(jobId: string): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/${jobId}`);
   }
 
-  getJobResult(jobId: string): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}/${jobId}/result`);
-  }
-
-  getSupportedLanguages(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/languages`);
+  getResult(jobId: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/${jobId}/result`);
   }
 
   cancelJob(jobId: string): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/${jobId}/cancel`, {});
+    return this.http.post<any>(
+      `${this.baseUrl}/${jobId}/cancel`, {});
+  }
+
+  getSupportedLanguages(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/languages`);
+  }
+
+  getStats(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/stats`);
   }
 }

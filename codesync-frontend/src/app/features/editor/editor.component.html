@@ -1,537 +1,507 @@
+
 <div class="editor-wrap">
 
-  <!-- Top Bar -->
-  <header class="editor-header">
-    <div class="header-left">
-      <a routerLink="/dashboard" class="back-btn">
-        ← Dashboard
+  <!-- Sidebar -->
+  <aside class="editor-sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-box">&lt;/&gt;</div>
+      <span>CodeSync</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item" routerLink="/dashboard">
+        <span>📊</span><span>Dashboard</span>
       </a>
-      <div class="header-brand">
-        <span class="brand-ico">&lt;/&gt;</span>
-        <span>CodeSync</span>
+      <a class="nav-item" routerLink="/projects">
+        <span>📁</span><span>Projects</span>
+      </a>
+      <a class="nav-item" routerLink="/profile">
+        <span>👤</span><span>Profile</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-ava">
+          {{ user?.fullName?.charAt(0) || 'D' }}
+        </div>
+        <div class="user-info">
+          <span class="uname">
+            {{ user?.fullName || 'Developer' }}
+          </span>
+          <span class="urole">Developer</span>
+        </div>
       </div>
-      <div class="project-name">
-        📁 {{ projectName }}
+      <button class="logout-btn" (click)="logout()">
+        🚪 Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Editor Main -->
+  <div class="editor-main">
+
+    <!-- Top Bar -->
+    <div class="editor-topbar">
+      <div class="topbar-left">
+        <span class="project-name">
+          📁 {{ project?.name || 'Project' }}
+        </span>
+        <span class="sep">›</span>
+        <span class="file-name" *ngIf="selectedFile">
+          {{ getFileIcon(selectedFile) }}
+          {{ selectedFile.name }}
+        </span>
+        <span class="no-file" *ngIf="!selectedFile">
+          No file selected
+        </span>
       </div>
-      <div class="file-name" *ngIf="selectedFile">
-        / {{ selectedFile.name }}
-        <span class="unsaved-dot"
-          *ngIf="hasUnsavedChanges">●</span>
+      <div class="topbar-actions">
+        <button class="tb-btn save-btn"
+          (click)="saveFile()"
+          [disabled]="!selectedFile || isSaving">
+          {{ isSaving ? '⏳ Saving...' : '💾 Save' }}
+        </button>
+        <button class="tb-btn snap-btn"
+          (click)="showSnapshotModal = true"
+          [disabled]="!selectedFile">
+          📸 Snapshot
+        </button>
+        <button class="tb-btn run-btn"
+          (click)="runCode()"
+          [disabled]="isRunning || !selectedFile">
+          <span *ngIf="!isRunning">▶ Run</span>
+          <span *ngIf="isRunning"
+            class="spinner-sm"></span>
+        </button>
+        <button class="tb-btn cancel-btn"
+          *ngIf="isRunning"
+          (click)="cancelExecution()">
+          ⏹ Stop
+        </button>
       </div>
     </div>
 
-    <div class="header-right">
-      <span class="save-msg" *ngIf="saveMessage">
-        {{ saveMessage }}
-      </span>
+    <!-- Editor Body -->
+    <div class="editor-body">
 
-      <button class="btn-header btn-save"
-        [disabled]="!selectedFile || isSaving"
-        (click)="saveFile()">
-        {{ isSaving ? 'Saving...' : '💾 Save' }}
-      </button>
-
-      <button class="btn-header btn-snapshot"
-        [disabled]="!selectedFile"
-        (click)="showCreateSnapshot = true">
-        📸 Snapshot
-      </button>
-
-      <button class="btn-header btn-run"
-        [disabled]="!selectedFile || isRunning"
-        (click)="runCode()">
-        {{ isRunning ? '⏳ Running...' : '▶ Run' }}
-      </button>
-
-      <button class="btn-header btn-cancel-run"
-        *ngIf="isRunning"
-        (click)="cancelExecution()">
-        ✕ Cancel
-      </button>
-    </div>
-  </header>
-
-  <div class="editor-body">
-
-    <!-- Left Panel — File Tree + Panels -->
-    <aside class="left-panel">
-
-      <!-- Panel Tabs -->
-      <div class="panel-tabs">
-        <button class="panel-tab"
-          [class.active]="activePanel === 'files'"
-          (click)="switchPanel('files')"
-          title="Files">📁</button>
-        <button class="panel-tab"
-          [class.active]="activePanel === 'versions'"
-          (click)="switchPanel('versions')"
-          title="Versions">📸</button>
-        <button class="panel-tab"
-          [class.active]="activePanel === 'comments'"
-          (click)="switchPanel('comments')"
-          title="Comments">💬</button>
-      </div>
-
-      <!-- Files Panel -->
-      <div class="panel-content" *ngIf="activePanel === 'files'">
+      <!-- File Tree Panel -->
+      <div class="file-panel">
         <div class="panel-header">
-          <span>EXPLORER</span>
+          <span>FILES</span>
           <div class="panel-actions">
             <button class="icon-btn"
               title="New File"
-              (click)="showCreateFile = true">+📄</button>
+              (click)="showCreateFileModal = true">
+              +📄
+            </button>
             <button class="icon-btn"
               title="New Folder"
-              (click)="showCreateFolder = true">+📁</button>
-          </div>
-        </div>
-
-        <!-- File Tree -->
-        <div class="file-tree">
-          <div class="tree-empty"
-            *ngIf="fileTree.length === 0">
-            <p>No files yet</p>
-            <button class="btn-tiny"
-              (click)="showCreateFile = true">
-              + Create File
+              (click)="showCreateFolderModal = true">
+              +📁
             </button>
           </div>
-
-          <div class="tree-item"
-            *ngFor="let file of fileTree"
-            [class.active]="selectedFile?.fileId === file.fileId"
-            [class.folder]="file.isFolder"
-            (click)="selectFile(file)">
-            <span class="tree-icon">
-              {{ getFileIcon(file) }}
-            </span>
-            <span class="tree-name">{{ file.name }}</span>
-          </div>
         </div>
 
-        <!-- File Actions -->
-        <div class="file-actions" *ngIf="selectedFile">
-          <button class="action-btn"
-            (click)="openRename()">
-            ✏️ Rename
-          </button>
-          <button class="action-btn danger"
-            (click)="deleteFile()">
-            🗑️ Delete
-          </button>
+        <div class="file-list">
+          <div *ngIf="files.length === 0"
+            class="no-files">
+            No files yet. Create one!
+          </div>
+          <div class="file-item"
+            *ngFor="let f of files"
+            [class.active]="selectedFile?.fileId === f.fileId"
+            [class.folder]="f.isFolder"
+            (click)="selectFile(f)">
+            <span class="file-icon">
+              {{ getFileIcon(f) }}
+            </span>
+            <span class="file-name-txt">
+              {{ f.name }}
+            </span>
+            <button class="del-btn"
+              *ngIf="!f.isFolder"
+              (click)="deleteFile(f);
+                $event.stopPropagation()"
+              title="Delete">
+              🗑️
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Versions Panel -->
-      <div class="panel-content"
-        *ngIf="activePanel === 'versions'">
-        <div class="panel-header">
-          <span>VERSION HISTORY</span>
-        </div>
-
+      <!-- Code Editor Panel -->
+      <div class="code-panel">
         <div class="no-file-msg"
           *ngIf="!selectedFile">
-          Select a file to view versions
-        </div>
-
-        <div *ngIf="selectedFile">
-          <!-- Diff Compare -->
-          <div class="diff-section"
-            *ngIf="snapshots.length >= 2">
-            <p class="section-label">Compare Snapshots</p>
-            <select class="mini-select"
-              [(ngModel)]="selectedSnap1">
-              <option value="0">Select snapshot 1</option>
-              <option *ngFor="let s of snapshots"
-                [value]="s.snapshotId">
-                #{{ s.snapshotId }} — {{ s.message }}
-              </option>
-            </select>
-            <select class="mini-select"
-              [(ngModel)]="selectedSnap2">
-              <option value="0">Select snapshot 2</option>
-              <option *ngFor="let s of snapshots"
-                [value]="s.snapshotId">
-                #{{ s.snapshotId }} — {{ s.message }}
-              </option>
-            </select>
-            <button class="btn-tiny"
-              (click)="compareDiff()">
-              Compare Diff
-            </button>
-          </div>
-
-          <!-- Snapshots List -->
-          <div class="snapshot-list">
-            <div class="snapshot-item"
-              *ngFor="let s of snapshots">
-              <div class="snap-info">
-                <span class="snap-msg">{{ s.message }}</span>
-                <span class="snap-meta">
-                  #{{ s.snapshotId }} •
-                  {{ s.createdAt | date:'MMM d, HH:mm' }}
-                </span>
-                <span class="snap-branch">
-                  🌿 {{ s.branch }}
-                </span>
-              </div>
-              <button class="btn-tiny restore-btn"
-                (click)="restoreSnapshot(s.snapshotId)">
-                Restore
-              </button>
-            </div>
-
-            <div class="tree-empty"
-              *ngIf="snapshots.length === 0">
-              <p>No snapshots yet</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Comments Panel -->
-      <div class="panel-content"
-        *ngIf="activePanel === 'comments'">
-        <div class="panel-header">
-          <span>COMMENTS</span>
-          <button class="icon-btn"
-            *ngIf="selectedFile"
-            (click)="showCommentBox = !showCommentBox">
-            +
+          <div class="nf-icon">📄</div>
+          <h3>No file selected</h3>
+          <p>Select a file from the left panel
+            or create a new one</p>
+          <button class="btn-create-file"
+            (click)="showCreateFileModal = true">
+            + Create File
           </button>
         </div>
 
-        <div class="no-file-msg" *ngIf="!selectedFile">
-          Select a file to view comments
-        </div>
-
-        <!-- Add Comment Box -->
-        <div class="comment-box"
-          *ngIf="showCommentBox && selectedFile">
-          <div class="form-group">
-            <label>Line Number</label>
-            <input type="number"
-              [(ngModel)]="selectedLine"
-              class="mini-input" min="1"/>
-          </div>
-          <textarea
-            [(ngModel)]="newComment"
-            placeholder="Write a comment... Use @username to mention"
-            class="comment-textarea"
-            rows="3">
-          </textarea>
-          <div class="comment-btns">
-            <button class="btn-tiny"
-              (click)="addComment()">
-              Add Comment
-            </button>
-            <button class="btn-tiny cancel"
-              (click)="showCommentBox = false">
-              Cancel
-            </button>
-          </div>
-        </div>
-
-        <!-- Comments List -->
-        <div class="comments-list" *ngIf="selectedFile">
-          <div class="comment-item"
-            *ngFor="let c of comments"
-            [class.resolved]="c.isResolved">
-
-            <div class="comment-header">
-              <span class="comment-line">
-                Line {{ c.lineNumber }}
-              </span>
-              <span class="comment-resolved"
-                *ngIf="c.isResolved">
-                ✅ Resolved
-              </span>
-            </div>
-
-            <p class="comment-content">{{ c.content }}</p>
-
-            <div class="comment-footer">
-              <span class="comment-date">
-                {{ c.createdAt | date:'MMM d, HH:mm' }}
-              </span>
-              <div class="comment-actions">
-                <button class="btn-micro"
-                  *ngIf="!c.isResolved"
-                  (click)="resolveComment(c.commentId)">
-                  Resolve
-                </button>
-                <button class="btn-micro danger"
-                  (click)="deleteComment(c.commentId)">
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="tree-empty"
-            *ngIf="comments.length === 0">
-            <p>No comments yet</p>
-          </div>
-        </div>
-      </div>
-
-    </aside>
-
-    <!-- Center — Code Editor -->
-    <main class="code-area">
-
-      <!-- No file selected -->
-      <div class="no-file-placeholder"
-        *ngIf="!selectedFile">
-        <div class="placeholder-icon">📝</div>
-        <h3>No file selected</h3>
-        <p>Select a file from the explorer or create a new one</p>
-        <button class="btn-create-file"
-          (click)="showCreateFile = true">
-          + Create New File
-        </button>
-      </div>
-
-      <!-- Code Editor -->
-      <div class="code-editor-wrap"
-        *ngIf="selectedFile">
-
-        <!-- Editor Header -->
-        <div class="editor-tab">
-          <span class="tab-icon">
-            {{ getFileIcon(selectedFile) }}
-          </span>
-          <span>{{ selectedFile.name }}</span>
-          <span class="tab-unsaved"
-            *ngIf="hasUnsavedChanges">●</span>
-          <span class="tab-lang">
-            {{ selectedFile.language }}
-          </span>
-        </div>
-
-        <!-- Textarea Editor -->
-        <div class="editor-container">
-          <div class="line-numbers">
-            <span
-              *ngFor="let line of getLineNumbers()"
-              class="line-num">
-              {{ line }}
+        <div class="code-area" *ngIf="selectedFile">
+          <div class="code-header">
+            <span class="code-lang">
+              {{ getFileIcon(selectedFile) }}
+              {{ selectedFile.name }}
+            </span>
+            <span class="code-size">
+              {{ fileContent.length }} chars
             </span>
           </div>
           <textarea
             class="code-textarea"
             [(ngModel)]="fileContent"
-            (input)="onContentChange()"
-            (keydown.tab)="handleTab($event)"
-            spellcheck="false"
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off">
+            [placeholder]="'// Write your '
+              + (selectedFile?.language || 'code')
+              + ' here...'"
+            spellcheck="false">
           </textarea>
         </div>
       </div>
 
-      <!-- Output Panel -->
-      <div class="output-panel" *ngIf="selectedFile">
-        <div class="output-header">
-          <span>OUTPUT</span>
-          <div class="output-status">
+      <!-- Right Panel -->
+      <div class="right-panel">
+
+        <!-- Panel Tabs -->
+        <div class="right-tabs">
+          <button class="rtab"
+            [class.active]="activePanel === 'output'"
+            (click)="activePanel = 'output'">
+            ▶ Output
+          </button>
+          <button class="rtab"
+            [class.active]="activePanel === 'versions'"
+            (click)="activePanel = 'versions';
+              loadSnapshots()">
+            📸 Versions
+          </button>
+          <button class="rtab"
+            [class.active]="activePanel === 'comments'"
+            (click)="activePanel = 'comments'">
+            💬 Comments
+          </button>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="right-content"
+          *ngIf="activePanel === 'output'">
+
+          <div class="stdin-section">
+            <label>Standard Input (stdin)</label>
+            <textarea [(ngModel)]="stdin"
+              placeholder="Enter input for your program..."
+              class="stdin-area" rows="3">
+            </textarea>
+          </div>
+
+          <div class="output-status"
+            *ngIf="jobStatus">
             <span class="status-badge"
-              *ngIf="executionStatus"
-              [class.running]="executionStatus === 'RUNNING'"
-              [class.completed]="executionStatus === 'COMPLETED'"
-              [class.failed]="executionStatus === 'FAILED' ||
-                executionStatus === 'TIMED_OUT'">
-              {{ executionStatus }}
+              [class.running]="jobStatus === 'RUNNING' || jobStatus === 'QUEUED'"
+              [class.success]="jobStatus === 'COMPLETED'"
+              [class.failed]="jobStatus === 'FAILED' || jobStatus === 'TIMED_OUT'">
+              {{ jobStatus }}
             </span>
-            <button class="btn-micro"
-              (click)="showInputBox = !showInputBox">
-              📥 stdin
+          </div>
+
+          <div class="output-box" *ngIf="isRunning">
+            <div class="running-indicator">
+              <div class="spinner-sm"></div>
+              <span>Executing in Docker sandbox...</span>
+            </div>
+          </div>
+
+          <div class="output-box stdout"
+            *ngIf="output && !isRunning">
+            <div class="output-label">
+              ✅ stdout
+            </div>
+            <pre>{{ output }}</pre>
+          </div>
+
+          <div class="output-box stderr"
+            *ngIf="outputError && !isRunning">
+            <div class="output-label">
+              ❌ stderr
+            </div>
+            <pre>{{ outputError }}</pre>
+          </div>
+
+          <div class="empty-output"
+            *ngIf="!output && !outputError
+              && !isRunning && !jobStatus">
+            <p>Click ▶ Run to execute your code</p>
+          </div>
+        </div>
+
+        <!-- Versions Panel -->
+        <div class="right-content"
+          *ngIf="activePanel === 'versions'">
+
+          <button class="btn-snap-create"
+            (click)="showSnapshotModal = true">
+            📸 Create Snapshot
+          </button>
+
+          <div class="empty-output"
+            *ngIf="snapshots.length === 0">
+            <p>No snapshots yet</p>
+          </div>
+
+          <div class="snap-list">
+            <div class="snap-item"
+              *ngFor="let s of snapshots">
+              <div class="snap-info">
+                <span class="snap-msg">
+                  {{ s.message }}
+                </span>
+                <span class="snap-date">
+                  {{ s.createdAt | date:'short' }}
+                </span>
+                <span class="snap-branch">
+                  🌿 {{ s.branch }}
+                </span>
+                <span class="snap-tag"
+                  *ngIf="s.tag">
+                  🏷️ {{ s.tag }}
+                </span>
+              </div>
+              <button class="btn-restore"
+                (click)="restoreSnapshot(s.snapshotId)">
+                Restore
+              </button>
+            </div>
+          </div>
+
+          <!-- Diff -->
+          <div class="diff-section"
+            *ngIf="snapshots.length >= 2">
+            <h4>Compare Snapshots</h4>
+            <div class="diff-selects">
+              <select [(ngModel)]="selectedSnap1"
+                class="diff-sel">
+                <option [value]="null">
+                  Select snapshot 1
+                </option>
+                <option *ngFor="let s of snapshots"
+                  [value]="s.snapshotId">
+                  {{ s.message }}
+                </option>
+              </select>
+              <select [(ngModel)]="selectedSnap2"
+                class="diff-sel">
+                <option [value]="null">
+                  Select snapshot 2
+                </option>
+                <option *ngFor="let s of snapshots"
+                  [value]="s.snapshotId">
+                  {{ s.message }}
+                </option>
+              </select>
+            </div>
+            <button class="btn-diff"
+              (click)="diffSnapshots()">
+              Compare
             </button>
-          </div>
-        </div>
 
-        <!-- stdin input -->
-        <div class="stdin-box" *ngIf="showInputBox">
-          <input type="text"
-            [(ngModel)]="stdin"
-            placeholder="Enter stdin input..."
-            class="stdin-input"/>
-        </div>
-
-        <div class="output-content">
-          <div class="output-loading"
-            *ngIf="isRunning">
-            <div class="run-spinner"></div>
-            <span>Executing in Docker sandbox...</span>
-          </div>
-
-          <pre class="output-text stdout"
-            *ngIf="executionOutput">{{ executionOutput }}</pre>
-
-          <pre class="output-text stderr"
-            *ngIf="executionError">{{ executionError }}</pre>
-
-          <div class="output-empty"
-            *ngIf="!isRunning && !executionOutput
-              && !executionError">
-            Click ▶ Run to execute code
-          </div>
-        </div>
-      </div>
-
-    </main>
-
-    <!-- Diff Modal -->
-    <div class="modal-overlay" *ngIf="showDiff">
-      <div class="modal modal-lg">
-        <div class="modal-head">
-          <h3>📊 Diff View</h3>
-          <button class="close-btn"
-            (click)="showDiff = false">✕</button>
-        </div>
-        <div class="diff-result" *ngIf="diffResult">
-          <p class="diff-summary">
-            Total changes: {{ diffResult.totalChanges }}
-          </p>
-          <div class="diff-lines">
-            <div class="diff-line"
-              *ngFor="let line of diffResult.lines"
-              [class.inserted]="line.type === 'Inserted'"
-              [class.deleted]="line.type === 'Deleted'"
-              [class.unchanged]="line.type === 'Unchanged'">
-              <span class="diff-sign">
-                {{ line.type === 'Inserted' ? '+' :
-                   line.type === 'Deleted' ? '-' : ' ' }}
-              </span>
-              <span class="diff-text">{{ line.text }}</span>
+            <div class="diff-result"
+              *ngIf="diffResult">
+              <div class="diff-stats">
+                <span>
+                  {{ diffResult.totalChanges }} changes
+                </span>
+              </div>
+              <div class="diff-lines">
+                <div class="diff-line"
+                  *ngFor="let line of diffResult.lines"
+                  [class.inserted]="line.type === 'Inserted'"
+                  [class.deleted]="line.type === 'Deleted'">
+                  <span class="diff-sym">
+                    {{ line.type === 'Inserted' ? '+' :
+                       line.type === 'Deleted' ? '-' : ' ' }}
+                  </span>
+                  <span class="diff-text">
+                    {{ line.text }}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Comments Panel -->
+        <div class="right-content"
+          *ngIf="activePanel === 'comments'">
+
+          <!-- Add Comment -->
+          <div class="add-comment">
+            <div class="form-group">
+              <label>Line Number</label>
+              <input type="number"
+                [(ngModel)]="newComment.lineNumber"
+                class="comment-input" min="1"/>
+            </div>
+            <div class="form-group">
+              <label>Comment</label>
+              <textarea
+                [(ngModel)]="newComment.content"
+                placeholder="Add inline comment..."
+                class="comment-input" rows="3">
+              </textarea>
+            </div>
+            <button class="btn-add-comment"
+              (click)="addComment()">
+              + Add Comment
+            </button>
+          </div>
+
+          <!-- Comments List -->
+          <div class="comments-list">
+            <div class="comment-item"
+              *ngFor="let c of comments"
+              [class.resolved]="c.isResolved">
+              <div class="comment-header">
+                <span class="comment-line">
+                  Line {{ c.lineNumber }}
+                </span>
+                <span class="comment-date">
+                  {{ c.createdAt | date:'short' }}
+                </span>
+                <span class="resolved-badge"
+                  *ngIf="c.isResolved">
+                  ✅ Resolved
+                </span>
+              </div>
+              <p class="comment-text">
+                {{ c.content }}
+              </p>
+              <div class="comment-actions">
+                <button class="ca-btn"
+                  *ngIf="!c.isResolved"
+                  (click)="resolveComment(c.commentId)">
+                  ✅ Resolve
+                </button>
+                <button class="ca-btn ca-del"
+                  (click)="deleteComment(c.commentId)">
+                  🗑️
+                </button>
+              </div>
+            </div>
+            <div class="empty-output"
+              *ngIf="comments.length === 0">
+              <p>No comments yet</p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- Create Snapshot Modal -->
-    <div class="modal-overlay"
-      *ngIf="showCreateSnapshot">
-      <div class="modal">
-        <div class="modal-head">
-          <h3>📸 Create Snapshot</h3>
-          <button class="close-btn"
-            (click)="showCreateSnapshot = false">✕</button>
-        </div>
-        <div class="form-group">
-          <label>Commit Message *</label>
-          <input type="text"
-            [(ngModel)]="snapshotMessage"
-            placeholder="Describe what changed..."
-            class="finput"/>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel"
-            (click)="showCreateSnapshot = false">
-            Cancel
-          </button>
-          <button class="btn-create"
-            (click)="createSnapshot()">
-            Create Snapshot
-          </button>
-        </div>
-      </div>
+<!-- Create File Modal -->
+<div class="modal-overlay"
+  *ngIf="showCreateFileModal"
+  (click)="showCreateFileModal = false">
+  <div class="modal"
+    (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>📄 Create New File</h3>
+      <button class="close-btn"
+        (click)="showCreateFileModal = false">✕</button>
     </div>
-
-    <!-- Create File Modal -->
-    <div class="modal-overlay"
-      *ngIf="showCreateFile">
-      <div class="modal">
-        <div class="modal-head">
-          <h3>📄 New File</h3>
-          <button class="close-btn"
-            (click)="showCreateFile = false">✕</button>
-        </div>
-        <div class="form-group">
-          <label>File Name *</label>
-          <input type="text"
-            [(ngModel)]="newFileName"
-            placeholder="e.g. main.py"
-            class="finput"/>
-        </div>
-        <div class="form-group">
-          <label>Language</label>
-          <select [(ngModel)]="newFileLanguage"
-            class="finput">
-            <option *ngFor="let l of languages"
-              [value]="l">{{ l }}</option>
-          </select>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel"
-            (click)="showCreateFile = false">
-            Cancel
-          </button>
-          <button class="btn-create"
-            (click)="createFile()">
-            Create File
-          </button>
-        </div>
-      </div>
+    <div class="form-group">
+      <label>File Name</label>
+      <input type="text"
+        [(ngModel)]="newFileName"
+        placeholder="main.py"
+        class="finput"/>
     </div>
-
-    <!-- Create Folder Modal -->
-    <div class="modal-overlay"
-      *ngIf="showCreateFolder">
-      <div class="modal">
-        <div class="modal-head">
-          <h3>📁 New Folder</h3>
-          <button class="close-btn"
-            (click)="showCreateFolder = false">✕</button>
-        </div>
-        <div class="form-group">
-          <label>Folder Name *</label>
-          <input type="text"
-            [(ngModel)]="newFolderName"
-            placeholder="e.g. src"
-            class="finput"/>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel"
-            (click)="showCreateFolder = false">
-            Cancel
-          </button>
-          <button class="btn-create"
-            (click)="createFolder()">
-            Create Folder
-          </button>
-        </div>
-      </div>
+    <div class="form-group">
+      <label>Language</label>
+      <select [(ngModel)]="newFileLanguage"
+        class="finput">
+        <option *ngFor="let l of languages"
+          [value]="l">{{ l }}</option>
+      </select>
     </div>
-
-    <!-- Rename Modal -->
-    <div class="modal-overlay" *ngIf="showRename">
-      <div class="modal">
-        <div class="modal-head">
-          <h3>✏️ Rename File</h3>
-          <button class="close-btn"
-            (click)="showRename = false">✕</button>
-        </div>
-        <div class="form-group">
-          <label>New Name *</label>
-          <input type="text"
-            [(ngModel)]="renameValue"
-            class="finput"/>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel"
-            (click)="showRename = false">
-            Cancel
-          </button>
-          <button class="btn-create"
-            (click)="renameFile()">
-            Rename
-          </button>
-        </div>
-      </div>
+    <div class="modal-footer">
+      <button class="btn-cancel"
+        (click)="showCreateFileModal = false">
+        Cancel
+      </button>
+      <button class="btn-create"
+        (click)="createFile()">
+        Create File
+      </button>
     </div>
+  </div>
+</div>
 
+<!-- Create Folder Modal -->
+<div class="modal-overlay"
+  *ngIf="showCreateFolderModal"
+  (click)="showCreateFolderModal = false">
+  <div class="modal"
+    (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>📁 Create New Folder</h3>
+      <button class="close-btn"
+        (click)="showCreateFolderModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Folder Name</label>
+      <input type="text"
+        [(ngModel)]="newFolderName"
+        placeholder="src"
+        class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel"
+        (click)="showCreateFolderModal = false">
+        Cancel
+      </button>
+      <button class="btn-create"
+        (click)="createFolder()">
+        Create Folder
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Snapshot Modal -->
+<div class="modal-overlay"
+  *ngIf="showSnapshotModal"
+  (click)="showSnapshotModal = false">
+  <div class="modal"
+    (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>📸 Create Snapshot</h3>
+      <button class="close-btn"
+        (click)="showSnapshotModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Commit Message</label>
+      <input type="text"
+        [(ngModel)]="snapshotMsg"
+        placeholder="Add login validation"
+        class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel"
+        (click)="showSnapshotModal = false">
+        Cancel
+      </button>
+      <button class="btn-create"
+        (click)="createSnapshot()">
+        Create Snapshot
+      </button>
+    </div>
   </div>
 </div>
