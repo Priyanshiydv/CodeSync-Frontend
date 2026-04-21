@@ -159,6 +159,10 @@
             <span>⭐ {{ p.starCount || 0 }}</span>
             <span>🍴 {{ p.forkCount || 0 }}</span>
           </div>
+          <button class="btn-sm btn-open"
+            (click)="openEditor(p.projectId, p.name)">
+            📝 Open
+          </button>
           <div class="proj-actions">
             <button class="btn-sm btn-star"
               (click)="starProject(p.projectId)">

@@ -126,5 +126,9 @@ export class DashboardComponent implements OnInit {
       .subscribe({ next: () => this.loadMyProjects() });
   }
 
+  openEditor(projectId: number, projectName: string) {
+    this.router.navigate(['/editor', projectId, projectName]);
+  }
+
   logout() { this.auth.logout(); }
 }
