@@ -1,0 +1,218 @@
+@use '../dashboard/dashboard.component.scss';
+
+.admin-sidebar { background: #1a1a2e; }
+
+.admin-badge {
+  background: rgba(244,67,54,0.15);
+  color: var(--danger);
+  text-align: center;
+  padding: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0 12px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(244,67,54,0.2);
+}
+
+.admin-ava { background: var(--danger) !important; }
+.admin-role { color: var(--danger) !important; }
+
+.nav-item {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+
+  h2 { font-size: 18px; font-weight: 700; }
+}
+
+.count-badge {
+  background: rgba(108,99,255,0.15);
+  color: var(--primary);
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.table-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: 13px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--darker);
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  td {
+    padding: 13px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(108,99,255,0.04); }
+}
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mini-ava {
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.role-pill {
+  background: rgba(108,99,255,0.12);
+  color: var(--primary);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-pill {
+  background: rgba(76,175,80,0.12);
+  color: var(--success);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+
+  &.inactive {
+    background: rgba(244,67,54,0.12);
+    color: var(--danger);
+  }
+}
+
+.lang-tag {
+  background: rgba(108,99,255,0.12);
+  color: var(--primary);
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.empty-msg {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.lang-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+
+  .lang-name { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+  .lang-version { font-size: 12px; color: var(--primary); margin-bottom: 5px; }
+  .lang-ext { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+}
+
+.broadcast-form {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 600px;
+
+  .form-group {
+    margin-bottom: 16px;
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+  }
+
+  .finput {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--darker);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    resize: vertical;
+    &:focus { outline: none; border-color: var(--primary); }
+    &::placeholder { color: var(--text-muted); }
+  }
+}
+
+.btn-broadcast {
+  padding: 11px 24px;
+  background: var(--danger);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  &:hover { opacity: 0.85; }
+}
+
+.loading-box {
+  display: flex;
+  justify-content: center;
+  padding: 50px;
+
+  .spin {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

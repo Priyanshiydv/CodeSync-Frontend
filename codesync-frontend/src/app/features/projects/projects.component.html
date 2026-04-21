@@ -1,0 +1,343 @@
+<div class="dash-wrap">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-box">&lt;/&gt;</div>
+      <span>CodeSync</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" routerLink="/dashboard">
+        <span>📊</span><span>Dashboard</span>
+      </a>
+      <a class="nav-item active" routerLink="/projects">
+        <span>📁</span><span>My Projects</span>
+      </a>
+      <a class="nav-item" routerLink="/profile">
+        <span>👤</span><span>Profile</span>
+      </a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-ava">
+            {{ user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'D' }}
+        </div>
+        <div class="user-info">
+            <span class="uname">
+            {{ user?.fullName || user?.username || 'Developer' }}
+            </span>
+            <span class="urole">Developer</span>
+        </div>
+        </div>
+      <button class="logout-btn" (click)="logout()">
+        🚪 Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-area">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div>
+        <h1>My Projects</h1>
+        <p>Manage all your projects</p>
+      </div>
+      <button class="btn-create"
+        (click)="showCreateModal = true">
+        + New Project
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <span>🔍</span>
+      <input type="text" [(ngModel)]="searchQuery"
+        placeholder="Search your projects..."
+        class="search-input"/>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num">{{ myProjects.length }}</div>
+        <div class="stat-lbl">Total Projects</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">
+          {{ myProjects.reduce(countPublic, 0) }}
+        </div>
+        <div class="stat-lbl">Public</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">
+          {{ myProjects.reduce(countPrivate, 0) }}
+        </div>
+        <div class="stat-lbl">Private</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">
+          {{ myProjects.reduce(totalStars, 0) }}
+        </div>
+        <div class="stat-lbl">Total Stars</div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-box" *ngIf="loading">
+      <div class="spin"></div>
+    </div>
+
+    <!-- Empty -->
+    <div class="empty-state"
+      *ngIf="!loading && myProjects.length === 0">
+      <div class="empty-ico">📁</div>
+      <h3>No projects yet</h3>
+      <p>Create your first project to start coding!</p>
+      <button class="btn-create"
+        (click)="showCreateModal = true">
+        + Create Project
+      </button>
+    </div>
+
+    <!-- Projects Grid -->
+    <div class="proj-grid"
+      *ngIf="!loading && filteredProjects.length > 0">
+      <div class="proj-card"
+        *ngFor="let p of filteredProjects">
+
+        <!-- Header -->
+        <div class="proj-header">
+          <div class="proj-name-wrap">
+            <span class="proj-name">{{ p.name }}</span>
+            <span class="lang-tag">{{ p.language }}</span>
+          </div>
+          <span class="vis-badge"
+            [class.private]="p.visibility === 'PRIVATE'">
+            {{ p.visibility }}
+          </span>
+        </div>
+
+        <!-- Description -->
+        <p class="proj-desc">
+          {{ p.description || 'No description provided' }}
+        </p>
+
+        <!-- Stats -->
+        <div class="proj-stats">
+          <span class="pstat">⭐ {{ p.starCount || 0 }}</span>
+          <span class="pstat">🍴 {{ p.forkCount || 0 }}</span>
+          <span class="pstat">
+            📅 {{ p.createdAt | date:'MMM d, y' }}
+          </span>
+        </div>
+
+        <!-- Actions -->
+        <div class="proj-actions">
+          <button class="btn-sm btn-edit"
+            (click)="openEdit(p)">
+            ✏️ Edit
+          </button>
+          <button class="btn-sm btn-members"
+            (click)="openMembers(p)">
+            👥 Members
+          </button>
+          <button class="btn-sm btn-star"
+            (click)="starProject(p.projectId)">
+            ⭐
+          </button>
+          <button class="btn-sm btn-fork"
+            (click)="forkProject(p.projectId)">
+            🍴
+          </button>
+          <button class="btn-sm btn-warning"
+            (click)="archiveProject(p.projectId)">
+            📦
+          </button>
+          <button class="btn-sm btn-danger"
+            (click)="deleteProject(p.projectId)">
+            🗑️
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- No search results -->
+    <div class="empty-state"
+      *ngIf="!loading && myProjects.length > 0
+        && filteredProjects.length === 0">
+      <div class="empty-ico">🔍</div>
+      <h3>No results</h3>
+      <p>No projects match "{{ searchQuery }}"</p>
+    </div>
+
+  </main>
+</div>
+
+<!-- Create Modal -->
+<div class="modal-overlay" *ngIf="showCreateModal"
+  (click)="showCreateModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>Create New Project</h3>
+      <button class="close-btn"
+        (click)="showCreateModal = false">✕</button>
+    </div>
+    <form (ngSubmit)="createProject()">
+      <div class="form-group">
+        <label>Project Name *</label>
+        <input type="text" [(ngModel)]="newProject.name"
+          name="name" placeholder="My Project"
+          required class="finput"/>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="newProject.description"
+          name="description" rows="3"
+          placeholder="Describe your project..."
+          class="finput"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Language</label>
+          <select [(ngModel)]="newProject.language"
+            name="language" class="finput">
+            <option *ngFor="let l of languages"
+              [value]="l">{{ l }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Visibility</label>
+          <select [(ngModel)]="newProject.visibility"
+            name="visibility" class="finput">
+            <option value="PUBLIC">Public</option>
+            <option value="PRIVATE">Private</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel"
+          (click)="showCreateModal = false">Cancel</button>
+        <button type="submit" class="btn-create">
+          Create Project
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" *ngIf="showEditModal"
+  (click)="showEditModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>Edit Project</h3>
+      <button class="close-btn"
+        (click)="showEditModal = false">✕</button>
+    </div>
+    <form (ngSubmit)="saveEdit()">
+      <div class="form-group">
+        <label>Project Name</label>
+        <input type="text" [(ngModel)]="editData.name"
+          name="editName" class="finput"/>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea [(ngModel)]="editData.description"
+          name="editDesc" rows="3"
+          class="finput"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Language</label>
+          <select [(ngModel)]="editData.language"
+            name="editLang" class="finput">
+            <option *ngFor="let l of languages"
+              [value]="l">{{ l }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Visibility</label>
+          <select [(ngModel)]="editData.visibility"
+            name="editVis" class="finput">
+            <option value="PUBLIC">Public</option>
+            <option value="PRIVATE">Private</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel"
+          (click)="showEditModal = false">Cancel</button>
+        <button type="submit" class="btn-create">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Members Modal -->
+<div class="modal-overlay" *ngIf="showMembersModal"
+  (click)="showMembersModal = false">
+  <div class="modal modal-lg"
+    (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>
+        Members — {{ selectedProject?.name }}
+      </h3>
+      <button class="close-btn"
+        (click)="showMembersModal = false">✕</button>
+    </div>
+
+    <!-- Add Member -->
+    <div class="add-member-row">
+      <input type="number"
+        [(ngModel)]="newMember.userId"
+        placeholder="User ID"
+        class="finput member-id-input"/>
+      <select [(ngModel)]="newMember.role"
+        class="finput role-select">
+        <option value="VIEWER">Viewer</option>
+        <option value="EDITOR">Editor</option>
+        <option value="OWNER">Owner</option>
+      </select>
+      <button class="btn-create"
+        (click)="addMember()">
+        Add Member
+      </button>
+    </div>
+
+    <!-- Members List -->
+    <div class="members-list">
+      <div class="member-row"
+        *ngFor="let m of members">
+        <div class="member-ava">
+          {{ m.userId }}
+        </div>
+        <div class="member-info">
+          <span class="member-id">
+            User #{{ m.userId }}
+          </span>
+          <span class="member-joined">
+            Joined {{ m.joinedAt | date:'mediumDate' }}
+          </span>
+        </div>
+        <span class="role-tag"
+          [class.owner]="m.role === 'OWNER'"
+          [class.editor]="m.role === 'EDITOR'">
+          {{ m.role }}
+        </span>
+        <button class="btn-sm btn-danger"
+          *ngIf="m.role !== 'OWNER'"
+          (click)="removeMember(m.userId)">
+          Remove
+        </button>
+      </div>
+      <p class="no-members"
+        *ngIf="members.length === 0">
+        No members yet
+      </p>
+    </div>
+  </div>
+</div>
