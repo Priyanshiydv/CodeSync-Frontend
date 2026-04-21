@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -11,65 +11,49 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent implements OnInit {
-
-  registerData = {
+export class RegisterComponent {
+  data = {
     fullName: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    role: 'DEVELOPER'
+    confirm: ''
   };
-
-  roles: any[] = [];
-  errorMessage = '';
-  successMessage = '';
-  isLoading = false;
-  showPassword = false;
+  error = '';
+  success = '';
+  loading = false;
+  showPass = false;
 
   constructor(
-    private authService: AuthService,
+    private auth: AuthService,
     private router: Router) { }
 
-  ngOnInit() {
-    this.authService.getRoles().subscribe({
-      next: (res) => this.roles = res,
-      error: () => {
-        this.roles = [
-          { role: 'DEVELOPER', description: 'Registered developer' },
-          { role: 'ADMIN', description: 'Platform administrator' }
-        ];
-      }
-    });
-  }
-
   onRegister() {
-    if (this.registerData.password
-      !== this.registerData.confirmPassword) {
-      this.errorMessage = 'Passwords do not match!';
-      return;
+    if (this.data.password !== this.data.confirm) {
+        this.error = 'Passwords do not match!';
+        return;
     }
+    this.loading = true;
+    this.error = '';
 
-    this.isLoading = true;
-    this.errorMessage = '';
+    // Generate username from email automatically
+    const username = this.data.email.split('@')[0];
 
-    const payload = {
-      fullName: this.registerData.fullName,
-      email: this.registerData.email,
-      password: this.registerData.password,
-      role: this.registerData.role
-    };
-
-    this.authService.register(payload).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.successMessage = 'Registration successful!';
+    this.auth.register({
+        fullName: this.data.fullName,
+        username: username,
+        email: this.data.email,
+        password: this.data.password,
+        role: 'Developer'   // ← capital D, lowercase rest
+    }).subscribe({
+        next: () => {
+        this.loading = false;
+        this.success = 'Account created! Redirecting to login...';
         setTimeout(() => this.router.navigate(['/auth/login']), 1500);
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Registration failed!';
-      }
+        },
+        error: (err) => {
+        this.loading = false;
+        this.error = err.error?.message || 'Registration failed!';
+        }
     });
-  }
+    }
 }

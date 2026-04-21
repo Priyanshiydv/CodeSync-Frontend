@@ -4,18 +4,17 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
 
   private baseUrl = 'http://localhost:5157/api/auth';
-
-  private currentUserSubject = new BehaviorSubject<any>(
+  private userSubject = new BehaviorSubject<any>(
     JSON.parse(localStorage.getItem('user') || 'null'));
-  currentUser$ = this.currentUserSubject.asObservable();
+  currentUser$ = this.userSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) { }
+  constructor(
+    private http: HttpClient,
+    private router: Router) { }
 
   register(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/register`, data);
@@ -26,17 +25,35 @@ export class AuthService {
       .pipe(tap((res: any) => {
         localStorage.setItem('token', res.token);
         localStorage.setItem('user', JSON.stringify(res));
-        this.currentUserSubject.next(res);
+
+        // Decode JWT token to extract role exactly as backend sends it
+        try {
+          const payload = JSON.parse(atob(res.token.split('.')[1]));
+          const role =
+            payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+            payload['role'] ||
+            payload['Role'] ||
+            'Developer';
+
+          // Store role exactly as received from backend
+          localStorage.setItem('role', role);
+          console.log('Role stored:', role);
+        } catch (e) {
+          localStorage.setItem('role', 'Developer');
+        }
+
+        this.userSubject.next(res);
       }));
   }
 
-  logout(): Observable<any> {
-    return this.http.post(`${this.baseUrl}/logout`, {})
-      .pipe(tap(() => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        this.currentUserSubject.next(null);
-      }));
+  logout(): void {
+    this.http.post(`${this.baseUrl}/logout`, {})
+      .subscribe({ error: () => { } });
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('role');
+    this.userSubject.next(null);
+    this.router.navigate(['/home']);
   }
 
   getProfile(): Observable<any> {
@@ -55,10 +72,6 @@ export class AuthService {
     return this.http.get(`${this.baseUrl}/search?query=${query}`);
   }
 
-  getRoles(): Observable<any> {
-    return this.http.get(`${this.baseUrl}/roles`);
-  }
-
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
   }
@@ -67,18 +80,22 @@ export class AuthService {
     return localStorage.getItem('token');
   }
 
-  /// Gets role from stored user
   getRole(): string {
-    const user = JSON.parse(localStorage.getItem('user') || 'null');
-    return user?.role || '';
+    return localStorage.getItem('role') || '';
   }
 
-  /// Redirects user based on their role after login
+  getCurrentUser(): any {
+    return JSON.parse(localStorage.getItem('user') || 'null');
+  }
+
   redirectByRole(): void {
     const role = this.getRole();
-    if (role === 'ADMIN') {
+    console.log('Redirecting with role:', role);
+
+    // Handle all possible cases from backend
+    if (role.toLowerCase() === 'admin') {
       this.router.navigate(['/admin']);
-    } else if (role === 'DEVELOPER') {
+    } else if (role.toLowerCase() === 'developer') {
       this.router.navigate(['/dashboard']);
     } else {
       this.router.navigate(['/home']);
