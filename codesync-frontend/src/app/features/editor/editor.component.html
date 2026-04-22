@@ -254,6 +254,17 @@
             *ngIf="snapshots.length === 0">
             <p>No snapshots yet</p>
           </div>
+          <!-- Branch Selector -->
+          <div class="branch-section">
+            <div class="branch-header">
+              <span class="branch-label">🌿 Branch:</span>
+              <select [(ngModel)]="currentBranch" (change)="switchBranch(currentBranch)" class="branch-select">
+                <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
+              </select>
+              <button class="icon-btn" (click)="showCreateBranchModal = true" title="New Branch">+</button>
+              <button class="icon-btn" (click)="showTagModal = true" title="Add Tag">🏷️</button>
+            </div>
+          </div>
 
           <div class="snap-list">
             <div class="snap-item"
@@ -503,6 +514,42 @@
         (click)="createSnapshot()">
         Create Snapshot
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Branch Modal -->
+<div class="modal-overlay" *ngIf="showCreateBranchModal" (click)="showCreateBranchModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🌿 Create New Branch</h3>
+      <button class="close-btn" (click)="showCreateBranchModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Branch Name</label>
+      <input type="text" [(ngModel)]="newBranchName" placeholder="feature/new-feature" class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showCreateBranchModal = false">Cancel</button>
+      <button class="btn-create" (click)="createBranch()">Create Branch</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Tag Modal -->
+<div class="modal-overlay" *ngIf="showTagModal" (click)="showTagModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🏷️ Add Tag</h3>
+      <button class="close-btn" (click)="showTagModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Tag Name</label>
+      <input type="text" [(ngModel)]="newTagName" placeholder="v1.0.0" class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showTagModal = false">Cancel</button>
+      <button class="btn-create" (click)="tagCurrentSnapshot()">Add Tag</button>
     </div>
   </div>
 </div>

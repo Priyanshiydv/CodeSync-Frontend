@@ -1026,5 +1026,32 @@ select.finput {
     background: #5a52d5 !important;
   }
 }
+.branch-section {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+
+.branch-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.branch-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.branch-select {
+  flex: 1;
+  padding: 6px 8px;
+  background: var(--darker);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12px;
+}
 
 @keyframes spin { to { transform: rotate(360deg); } }
