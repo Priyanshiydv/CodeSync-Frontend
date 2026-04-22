@@ -58,7 +58,13 @@ export class EditorComponent implements OnInit, OnDestroy {
     content: '',
     lineNumber: 1,
     parentCommentId: null
+  
   };
+  // Comment replies
+  replyingTo: number | null = null;
+  replyContent = '';
+  commentReplies: { [commentId: number]: any[] } = {};
+
   // Branches & Tags
   branches: string[] = ['main'];
   currentBranch = 'main';
@@ -354,7 +360,11 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   loadComments(fileId: number) {
     this.commentService.getByFile(fileId).subscribe({
-      next: (res: any[]) => this.comments = res,
+      next: (res: any[]) => {
+        this.comments = res;
+        // Load replies for each comment
+        this.comments.forEach(c => this.loadReplies(c.commentId));
+      },
       error: () => this.comments = []
     });
   }
@@ -397,6 +407,40 @@ export class EditorComponent implements OnInit, OnDestroy {
           this.loadComments(this.selectedFile.fileId);
         }
       }
+    });
+  }
+
+  toggleReply(commentId: number) {
+    this.replyingTo = this.replyingTo === commentId ? null : commentId;
+    this.replyContent = '';
+  }
+
+  loadReplies(commentId: number) {
+    this.commentService.getReplies(commentId).subscribe({
+      next: (res: any[]) => {
+        this.commentReplies[commentId] = res;
+      },
+      error: () => this.commentReplies[commentId] = []
+    });
+  }
+
+  addReply(parentComment: any) {
+    if (!this.replyContent.trim() || !this.selectedFile) return;
+
+    this.commentService.addComment({
+      projectId: this.projectId,
+      fileId: this.selectedFile.fileId,
+      content: this.replyContent,
+      lineNumber: parentComment.lineNumber,
+      parentCommentId: parentComment.commentId
+    }).subscribe({
+      next: () => {
+        this.replyContent = '';
+        this.replyingTo = null;
+        this.loadReplies(parentComment.commentId);
+        alert('Reply added!');
+      },
+      error: (err) => alert('Failed to add reply')
     });
   }
 
