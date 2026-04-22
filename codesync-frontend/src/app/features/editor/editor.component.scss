@@ -1119,4 +1119,96 @@ select.finput {
   color: var(--text-muted);
 }
 
+.collab-btn {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  
+  &.active {
+    background: rgba(76, 175, 80, 0.15);
+    color: var(--success);
+  }
+}
+
+.join-btn {
+  background: rgba(108, 99, 255, 0.15);
+  color: var(--primary);
+}
+
+.session-info {
+  margin-bottom: 20px;
+  
+  label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: block;
+  }
+}
+
+.link-box {
+  display: flex;
+  gap: 8px;
+  
+  code {
+    flex: 1;
+    padding: 10px;
+    background: var(--darker);
+    border-radius: 8px;
+    font-size: 12px;
+    word-break: break-all;
+  }
+}
+
+.copy-btn {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.participants-section {
+  margin-top: 20px;
+  
+  h4 {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+}
+
+.participant-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.participant-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.participant-role {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.btn-danger {
+  padding: 10px 20px;
+  background: rgba(244, 67, 54, 0.15);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
 @keyframes spin { to { transform: rotate(360deg); } }

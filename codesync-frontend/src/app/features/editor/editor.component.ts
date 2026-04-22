@@ -9,6 +9,7 @@ import { VersionService } from '../../core/services/version.service';
 import { CommentService } from '../../core/services/comment.service';
 import { ProjectService } from '../../core/services/project.service';
 import { NotificationComponent } from '../notification/notification.component';
+import { CollabService } from '../../core/services/collab.service';
 
 @Component({
   selector: 'app-editor',
@@ -78,8 +79,21 @@ export class EditorComponent implements OnInit, OnDestroy {
   newFolderName = '';
   newFileLanguage = 'Python';
 
+  // Collaboration
+  currentSession: any = null;
+  showSessionModal = false;
+  showJoinModal = false;
+  sessionLink = '';
+  sessionPassword = '';
+  maxParticipants = 10;
+  participants: any[] = [];
+  joinSessionId = '';
+  joinPassword = '';
+
   languages = ['Python','JavaScript','TypeScript',
     'Java','CSharp','C','C++','Go','Rust','PHP','Ruby'];
+  
+  
 
   constructor(
     private route: ActivatedRoute,
@@ -89,7 +103,8 @@ export class EditorComponent implements OnInit, OnDestroy {
     private executionService: ExecutionService,
     private versionService: VersionService,
     private commentService: CommentService,
-    private projectService: ProjectService) {}
+    private projectService: ProjectService,
+    private collabService: CollabService ){}
 
  ngOnInit() {
     this.projectId = Number(
@@ -538,6 +553,80 @@ export class EditorComponent implements OnInit, OnDestroy {
         alert('Tag added!');
       },
       error: (err) => alert(err.error?.message || 'Failed to add tag')
+    });
+  }
+  startSession() {
+    if (!this.selectedFile) {
+      alert('Select a file first!');
+      return;
+    }
+
+    this.collabService.createSession({
+      projectId: this.projectId,
+      fileId: this.selectedFile.fileId,
+      language: this.selectedFile.language || 'Python',
+      maxParticipants: this.maxParticipants,
+      isPasswordProtected: !!this.sessionPassword,
+      sessionPassword: this.sessionPassword || undefined
+    }).subscribe({
+      next: (res: any) => {
+        this.currentSession = res.session;
+        this.sessionLink = `${window.location.origin}/join/${res.session.sessionId}`;
+        this.showSessionModal = true;
+        this.loadParticipants();
+      },
+      error: (err) => alert('Failed to start session: ' + err.message)
+    });
+  }
+
+  loadParticipants() {
+    if (!this.currentSession) return;
+    
+    this.collabService.getParticipants(this.currentSession.sessionId).subscribe({
+      next: (res: any[]) => this.participants = res,
+      error: () => this.participants = []
+    });
+  }
+
+  copySessionLink() {
+    navigator.clipboard.writeText(this.sessionLink);
+    alert('Link copied to clipboard!');
+  }
+
+  endSession() {
+    if (!this.currentSession) return;
+    
+    this.collabService.endSession(this.currentSession.sessionId).subscribe({
+      next: () => {
+        this.currentSession = null;
+        this.showSessionModal = false;
+        this.participants = [];
+        alert('Session ended!');
+      },
+      error: (err) => alert('Failed to end session')
+    });
+  }
+
+  joinSession() {
+    if (!this.joinSessionId) {
+      alert('Enter session ID!');
+      return;
+    }
+
+    const userId = this.getUserId();
+    this.collabService.joinSession(this.joinSessionId, {
+      userId: userId,
+      sessionPassword: this.joinPassword || null
+    }).subscribe({
+      next: (res: any) => {
+        this.currentSession = { sessionId: this.joinSessionId };
+        this.showJoinModal = false;
+        this.joinSessionId = '';
+        this.joinPassword = '';
+        alert('Joined session!');
+        this.loadParticipants();
+      },
+      error: (err) => alert('Failed to join: ' + err.error?.message)
     });
   }
 
