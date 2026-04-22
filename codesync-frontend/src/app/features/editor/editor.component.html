@@ -375,43 +375,45 @@
 
           <!-- Comments List -->
           <div class="comments-list">
-            <div class="comment-item"
-              *ngFor="let c of comments"
-              [class.resolved]="c.isResolved">
+            <div class="comment-item" *ngFor="let c of comments" [class.resolved]="c.isResolved">
               <div class="comment-header">
-                <span class="comment-line">
-                  Line {{ c.lineNumber }}
-                </span>
-                <span class="comment-date">
-                  {{ c.createdAt | date:'short' }}
-                </span>
-                <span class="resolved-badge"
-                  *ngIf="c.isResolved">
-                  ✅ Resolved
-                </span>
+                <span class="comment-line">Line {{ c.lineNumber }}</span>
+                <span class="comment-date">{{ c.createdAt | date:'short' }}</span>
+                <span class="resolved-badge" *ngIf="c.isResolved">✅ Resolved</span>
               </div>
-              <p class="comment-text">
-                {{ c.content }}
-              </p>
+              <p class="comment-text">{{ c.content }}</p>
               <div class="comment-actions">
-                <button class="ca-btn"
-                  *ngIf="!c.isResolved"
-                  (click)="resolveComment(c.commentId)">
-                  ✅ Resolve
-                </button>
-                <button class="ca-btn ca-del"
-                  (click)="deleteComment(c.commentId)">
-                  🗑️
-                </button>
+                <button class="ca-btn" (click)="toggleReply(c.commentId)">💬 Reply</button>
+                <button class="ca-btn" *ngIf="!c.isResolved" (click)="resolveComment(c.commentId)">✅ Resolve</button>
+                <button class="ca-btn ca-del" (click)="deleteComment(c.commentId)">🗑️</button>
+              </div>
+
+              <!-- Reply Form -->
+              <div class="reply-form" *ngIf="replyingTo === c.commentId">
+                <textarea [(ngModel)]="replyContent" placeholder="Write a reply..." rows="2"></textarea>
+                <div class="reply-actions">
+                  <button class="btn-sm" (click)="addReply(c)">Reply</button>
+                  <button class="btn-sm btn-cancel" (click)="replyingTo = null">Cancel</button>
+                </div>
+              </div>
+
+              <!-- Replies Section -->
+              <div class="replies-section" *ngIf="commentReplies[c.commentId] && commentReplies[c.commentId].length > 0">
+                <div class="reply-item" *ngFor="let r of commentReplies[c.commentId]">
+                  <div class="reply-header">
+                    <span class="reply-author">{{ r.authorName || 'User' }}</span>
+                    <span class="reply-date">{{ r.createdAt | date:'short' }}</span>
+                  </div>
+                  <p class="reply-text">{{ r.content }}</p>
+                </div>
               </div>
             </div>
-            <div class="empty-output"
-              *ngIf="comments.length === 0">
+            
+            <div class="empty-output" *ngIf="comments.length === 0">
               <p>No comments yet</p>
             </div>
           </div>
-        </div>
-
+         </div>
       </div>
     </div>
   </div>
