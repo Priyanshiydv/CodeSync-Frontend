@@ -57,6 +57,7 @@
         </span>
       </div>
       <div class="topbar-actions">
+        <app-notification></app-notification>
         <button class="tb-btn save-btn"
           (click)="saveFile()"
           [disabled]="!selectedFile || isSaving">

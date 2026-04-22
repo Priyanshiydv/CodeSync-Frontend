@@ -8,11 +8,12 @@ import { ExecutionService } from '../../core/services/execution.service';
 import { VersionService } from '../../core/services/version.service';
 import { CommentService } from '../../core/services/comment.service';
 import { ProjectService } from '../../core/services/project.service';
+import { NotificationComponent } from '../notification/notification.component';
 
 @Component({
   selector: 'app-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, NotificationComponent],
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })

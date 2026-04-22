@@ -48,13 +48,14 @@
       <div class="topbar-left">
         <h1>Dashboard</h1>
         <p>Welcome back,
-          {{ user?.fullName || user?.username || 'Developer' }}!
-        </p>
+          {{ user?.fullName || user?.username || 'Developer' }}!</p>
       </div>
-      <button class="btn-create"
-        (click)="showCreateModal = true">
-        + New Project
-      </button>
+      <div class="topbar-actions">
+        <app-notification></app-notification>
+        <button class="btn-create" (click)="showCreateModal = true">
+          + New Project
+        </button>
+      </div>
     </div>
 
     <!-- Stats -->
