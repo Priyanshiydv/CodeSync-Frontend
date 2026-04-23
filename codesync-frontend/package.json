@@ -23,6 +23,8 @@
     "@auth0/angular-jwt": "^5.2.0",
     "@microsoft/signalr": "^10.0.0",
     "bootstrap": "^5.3.8",
+    "monaco-editor": "^0.55.1",
+    "ngx-monaco-editor-v2": "^14.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.3"
