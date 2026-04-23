@@ -164,14 +164,18 @@
               {{ fileContent.length }} chars
             </span>
           </div>
-          <textarea
-            class="code-textarea"
-            [(ngModel)]="fileContent"
-            [placeholder]="'// Write your '
-              + (selectedFile?.language || 'code')
-              + ' here...'"
-            spellcheck="false">
-          </textarea>
+          <!-- Monaco Editor -->
+          <div class="monaco-wrapper">
+            <ngx-monaco-editor
+              [options]="monacoOptions"
+              [(ngModel)]="fileContent"
+              (init)="onEditorInit($event)"
+               style="height: 100%; width: 100%; display: block;">
+            </ngx-monaco-editor>
+          </div>
+          <div class="editor-empty" *ngIf="!selectedFile">
+            <p>Select a file to start editing</p>
+          </div>
         </div>
       </div>
 

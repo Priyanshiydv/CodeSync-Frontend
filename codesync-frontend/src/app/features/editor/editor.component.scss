@@ -339,6 +339,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
 }
 
 .code-header {
@@ -1210,5 +1211,25 @@ select.finput {
   border-radius: 10px;
   cursor: pointer;
 }
+.monaco-wrapper {
+  width: 100%;
+  height: calc(100vh - 160px);
+  min-height: 500px;
+  overflow: hidden;
+}
 
+::ng-deep .monaco-editor-instance {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+::ng-deep .editor-container {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.remote-cursor {
+  background: rgba(255, 165, 0, 0.3);
+  border-left: 2px solid orange;
+}
 @keyframes spin { to { transform: rotate(360deg); } }

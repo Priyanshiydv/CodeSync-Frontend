@@ -10,11 +10,29 @@ import { CommentService } from '../../core/services/comment.service';
 import { ProjectService } from '../../core/services/project.service';
 import { NotificationComponent } from '../notification/notification.component';
 import { CollabService } from '../../core/services/collab.service';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+
+const LANGUAGE_MAP: Record<string, string> = {
+  'Python': 'python', 'JavaScript': 'javascript', 'TypeScript': 'typescript',
+  'Java': 'java', 'C': 'c', 'C++': 'cpp', 'Go': 'go', 'Rust': 'rust',
+  'Ruby': 'ruby', 'PHP': 'php', 'Kotlin': 'kotlin', 'Swift': 'swift', 'R': 'r',
+  '.py': 'python', '.js': 'javascript', '.ts': 'typescript', '.java': 'java',
+  '.cs': 'csharp', '.go': 'go', '.rs': 'rust', '.rb': 'ruby',
+  '.php': 'php', '.kt': 'kotlin', '.swift': 'swift',
+};
+
+function getMonacoLanguage(file: any, projectLanguage?: string): string {
+  if (!file) return 'plaintext';
+  const ext = '.' + (file.name ?? '').split('.').pop()?.toLowerCase();
+  if (LANGUAGE_MAP[ext]) return LANGUAGE_MAP[ext];
+  if (projectLanguage && LANGUAGE_MAP[projectLanguage]) return LANGUAGE_MAP[projectLanguage];
+  return 'plaintext';
+}
 
 @Component({
   selector: 'app-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NotificationComponent],
+  imports: [CommonModule, FormsModule, RouterLink, MonacoEditorModule, NotificationComponent],
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
@@ -92,6 +110,21 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   languages = ['Python','JavaScript','TypeScript',
     'Java','CSharp','C','C++','Go','Rust','PHP','Ruby'];
+
+  // Monaco
+  monacoOptions = {
+    theme: 'vs-dark',
+    language: 'plaintext',
+    automaticLayout: true,
+    minimap: { enabled: false },
+    fontSize: 14,
+    fontFamily: '"Cascadia Code", "Fira Code", monospace',
+    scrollBeyondLastLine: false,
+    padding: { top: 12 },
+  };
+  private editorInstance: any = null;
+  private remoteCursorDecorations: string[] = [];
+  remoteCursors: { [userId: number]: { line: number; col: number; color: string } } = {};
   
   
 
@@ -124,6 +157,41 @@ export class EditorComponent implements OnInit, OnDestroy {
     }
   }
 
+  onEditorInit(editor: any): void {
+    this.editorInstance = editor;
+    editor.onDidChangeCursorPosition((e: any) => {
+      if (this.currentSession && this.user) {
+        const { lineNumber, column } = e.position;
+        this.collabService.updateCursor(this.currentSession.sessionId, {
+          userId: this.user.userId,
+          cursorLine: lineNumber,
+          cursorCol: column,
+        }).subscribe();
+      }
+    });
+  }
+
+  private updateEditorLanguage(): void {
+    const lang = getMonacoLanguage(this.selectedFile, this.project?.language);
+    this.monacoOptions = { ...this.monacoOptions, language: lang };
+  }
+
+  updateRemoteCursorDecoration(userId: number, line: number, col: number, color: string): void {
+    if (!this.editorInstance) return;
+    this.remoteCursors[userId] = { line, col, color };
+    const decorations = Object.entries(this.remoteCursors)
+      .filter(([uid]) => +uid !== this.user?.userId)
+      .map(([, cursor]) => ({
+        range: {
+          startLineNumber: cursor.line, startColumn: cursor.col,
+          endLineNumber: cursor.line, endColumn: cursor.col + 1,
+        },
+        options: { className: 'remote-cursor', stickiness: 1 },
+      }));
+    this.remoteCursorDecorations =
+      this.editorInstance.deltaDecorations(this.remoteCursorDecorations, decorations);
+  }
+
   loadProject() {
     this.projectService.getProjectById(this.projectId)
       .subscribe({
@@ -153,7 +221,8 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.fileService.getFileContent(file.fileId)
       .subscribe({
         next: (res: any) => {
-          this.fileContent = res.content || '';
+          this.fileContent = res.content ?? res;
+          this.updateEditorLanguage();
         },
         error: () => this.fileContent = ''
       });
