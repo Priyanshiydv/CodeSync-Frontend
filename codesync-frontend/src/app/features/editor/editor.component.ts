@@ -151,13 +151,18 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.loadBranches();
    }
 
-  ngOnDestroy() {
+   ngOnDestroy() {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }
+    if (this.jobId) {
+      this.executionService.disconnectFromJob(this.jobId);
+    }
     this.collabService.stopConnection();
   }
+
   
+
   onEditorInit(editor: any): void {
     this.editorInstance = editor;
 
@@ -325,14 +330,69 @@ export class EditorComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: (res: any) => {
         this.jobId = res.jobId;
-        this.pollResult();
+        this.connectExecutionSignalR(res.jobId);
       },
       error: (err: any) => {
         this.isRunning = false;
-        this.outputError =
-          err.error?.message || 'Execution failed!';
+        this.outputError = err.error?.message || 'Execution failed!';
       }
     });
+  }
+  private connectExecutionSignalR(jobId: string): void {
+    const token = this.auth.getToken() ?? '';
+    this.jobStatus = 'RUNNING';
+
+    this.executionService.connectToJob(jobId, token)
+      .then(() => {
+        console.log('Execution SignalR connected for job:', jobId);
+
+        // Job started
+        this.executionService.onJobStarted((id) => {
+          this.jobStatus = 'RUNNING';
+        });
+
+        // Stream stdout chunks in real time
+        this.executionService.onStdoutChunk((id, chunk) => {
+          this.output += chunk;
+          this.activePanel = 'output';
+        });
+
+        // Stream stderr chunks in real time
+        this.executionService.onStderrChunk((id, chunk) => {
+          this.outputError += chunk;
+          this.activePanel = 'output';
+        });
+
+        // Job completed
+        this.executionService.onJobCompleted((id, stdout, stderr, exitCode) => {
+          this.jobStatus = 'COMPLETED';
+          this.isRunning = false;
+          this.output = stdout;
+          this.outputError = stderr;
+          this.executionService.disconnectFromJob(jobId);
+        });
+
+        // Job timed out
+        this.executionService.onJobTimedOut((id) => {
+          this.jobStatus = 'TIMED_OUT';
+          this.isRunning = false;
+          this.outputError = 'Execution exceeded 10 second time limit!';
+          this.executionService.disconnectFromJob(jobId);
+        });
+
+        // Job failed
+        this.executionService.onJobFailed((id, error) => {
+          this.jobStatus = 'FAILED';
+          this.isRunning = false;
+          this.outputError = error;
+          this.executionService.disconnectFromJob(jobId);
+        });
+      })
+      .catch(err => {
+        // Fallback to polling if SignalR fails
+        console.warn('SignalR failed, falling back to polling:', err);
+        this.pollResult();
+      });
   }
 
   pollResult() {
@@ -358,12 +418,12 @@ export class EditorComponent implements OnInit, OnDestroy {
         });
     }, 2000);
   }
-
   cancelExecution() {
     if (!this.jobId) return;
     this.executionService.cancelJob(this.jobId).subscribe({
       next: () => {
         clearInterval(this.pollingInterval);
+        this.executionService.disconnectFromJob(this.jobId);
         this.isRunning = false;
         this.jobStatus = 'CANCELLED';
       }
