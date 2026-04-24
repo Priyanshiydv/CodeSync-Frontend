@@ -155,21 +155,33 @@ export class EditorComponent implements OnInit, OnDestroy {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
     }
+    this.collabService.stopConnection();
   }
-
+  
   onEditorInit(editor: any): void {
     this.editorInstance = editor;
+
     editor.onDidChangeCursorPosition((e: any) => {
       if (this.currentSession && this.user) {
         const { lineNumber, column } = e.position;
-        this.collabService.updateCursor(this.currentSession.sessionId, {
-          userId: this.user.userId,
-          cursorLine: lineNumber,
-          cursorCol: column,
-        }).subscribe();
+        this.collabService.sendCursor(
+          this.currentSession.sessionId,
+          this.getUserId(), lineNumber, column
+        );
       }
     });
-  }
+
+    editor.onDidChangeModelContent(() => {
+      if (this.currentSession && this.selectedFile) {
+        this.collabService.sendEdit(
+          this.currentSession.sessionId,
+          this.selectedFile.fileId,
+          this.fileContent,
+          this.getUserId()
+        );
+      }
+    });
+  } 
 
   private updateEditorLanguage(): void {
     const lang = getMonacoLanguage(this.selectedFile, this.project?.language);
@@ -624,27 +636,25 @@ export class EditorComponent implements OnInit, OnDestroy {
       error: (err) => alert(err.error?.message || 'Failed to add tag')
     });
   }
+
   startSession() {
-    if (!this.selectedFile) {
-      alert('Select a file first!');
-      return;
-    }
+    if (!this.selectedFile) { alert('Select a file first!'); return; }
 
     this.collabService.createSession({
       projectId: this.projectId,
       fileId: this.selectedFile.fileId,
       language: this.selectedFile.language || 'Python',
       maxParticipants: this.maxParticipants,
-      isPasswordProtected: !!this.sessionPassword,
-      sessionPassword: this.sessionPassword || undefined
+      isPasswordProtected: false
     }).subscribe({
       next: (res: any) => {
-        this.currentSession = res.session;
-        this.sessionLink = `${window.location.origin}/join/${res.session.sessionId}`;
+        this.currentSession = res.session ?? res;
+        this.sessionLink = `${window.location.origin}/join/${this.currentSession.sessionId}`;
         this.showSessionModal = true;
+        this.connectSignalR(this.currentSession.sessionId);
         this.loadParticipants();
       },
-      error: (err) => alert('Failed to start session: ' + err.message)
+      error: (err: any) => alert('Failed to start session')
     });
   }
 
@@ -664,38 +674,67 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   endSession() {
     if (!this.currentSession) return;
-    
     this.collabService.endSession(this.currentSession.sessionId).subscribe({
       next: () => {
+        this.collabService.stopConnection();
         this.currentSession = null;
         this.showSessionModal = false;
         this.participants = [];
-        alert('Session ended!');
-      },
-      error: (err) => alert('Failed to end session')
+      }
     });
   }
 
   joinSession() {
-    if (!this.joinSessionId) {
-      alert('Enter session ID!');
-      return;
-    }
+    if (!this.joinSessionId) { alert('Enter session ID!'); return; }
 
-    const userId = this.getUserId();
     this.collabService.joinSession(this.joinSessionId, {
-      userId: userId,
+      userId: this.getUserId(),
       sessionPassword: this.joinPassword || null
     }).subscribe({
       next: (res: any) => {
-        this.currentSession = { sessionId: this.joinSessionId };
+        this.currentSession = { sessionId: this.joinSessionId, ...(res.session ?? res) };
         this.showJoinModal = false;
         this.joinSessionId = '';
         this.joinPassword = '';
-        alert('Joined session!');
+        this.connectSignalR(this.currentSession.sessionId);
         this.loadParticipants();
       },
-      error: (err) => alert('Failed to join: ' + err.error?.message)
+      error: (err: any) => alert('Failed to join: ' + (err.error?.message ?? 'Error'))
+    });
+  }
+
+  private connectSignalR(sessionId: string): void {
+    const token = localStorage.getItem('token') ?? '';
+    this.collabService.startConnection(sessionId, token);
+
+    this.collabService.onReceiveEdit((fileId, content, userId) => {
+      if (userId !== this.getUserId() && this.selectedFile?.fileId === fileId) {
+        this.fileContent = content;
+      }
+    });
+
+    this.collabService.onCursorUpdate((userId, line, col, color) => {
+      if (userId !== this.getUserId()) {
+        this.updateRemoteCursorDecoration(userId, line, col, color);
+      }
+    });
+
+    this.collabService.onParticipantJoined((participant) => {
+      if (!this.participants.find(p => p.userId === participant.userId)) {
+        this.participants.push(participant);
+      }
+    });
+
+    this.collabService.onParticipantLeft((userId) => {
+      this.participants = this.participants.filter(p => p.userId !== userId);
+      delete this.remoteCursors[userId];
+    });
+
+    this.collabService.onSessionEnded(() => {
+      this.collabService.stopConnection();
+      this.currentSession = null;
+      this.participants = [];
+      alert('Session was ended by the owner.');
     });
   }
 
