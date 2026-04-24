@@ -8,7 +8,7 @@
         <span>CodeSync</span>
       </div>
       <div class="nav-right">
-        <a routerLink="/home" class="nav-link">Browse</a>
+        <a (click)="scrollToProjects()" class="nav-link" style="cursor:pointer">Browse</a>
         <ng-container *ngIf="!isLoggedIn">
           <a routerLink="/auth/login" class="nav-link">Login</a>
           <a routerLink="/auth/register" class="nav-cta">
@@ -54,9 +54,9 @@
           (click)="goToDashboard()">
           Go to Dashboard
         </button>
-        <a routerLink="/home" class="btn-hero-sec">
+        <button class="btn-hero-sec" (click)="scrollToProjects()">
           Explore Projects
-        </a>
+        </button>
       </div>
       <div class="hero-chips">
         <span class="chip">14+ Languages</span>
@@ -88,7 +88,7 @@
   </section>
 
   <!-- Projects -->
-  <section class="projects-sec">
+  <section class="projects-sec" id="projects">
     <div class="section-inner">
       <div class="section-head">
         <h2>Explore Public Projects</h2>
