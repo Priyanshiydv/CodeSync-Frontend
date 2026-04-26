@@ -15,7 +15,8 @@
   position: fixed;
   height: 100vh;
   left: 0; top: 0;
-  z-index: 50;
+  z-index: 999;
+  transition: left 0.3s ease;
 }
 
 .sidebar-brand {
@@ -1231,5 +1232,146 @@ select.finput {
 .remote-cursor {
   background: rgba(255, 165, 0, 0.3);
   border-left: 2px solid orange;
+}
+// ─── Responsive Breakpoints ────────────────────────────────────────────────
+
+// Tablet (max 1024px) — hide right panel, collapse file panel
+@media (max-width: 1024px) {
+  .editor-main {
+    margin-left: 0;
+  }
+
+  .editor-sidebar {
+    left: -220px;
+  }
+
+  .editor-sidebar.mobile-open {
+    left: 0;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 998;
+  }
+
+  .sidebar-overlay.visible {
+    display: block;
+  }
+  .tb-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .file-panel {
+    width: 160px;
+  }
+
+  .right-panel {
+    width: 240px;
+  }
+}
+
+// Small tablet / large mobile (max 768px)
+@media (max-width: 768px) {
+  .editor-body {
+    flex-direction: column;
+  }
+
+  .file-panel {
+    width: 100%;
+    height: 140px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+
+    .file-list {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 6px;
+    }
+
+    .file-item {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+  }
+
+  .code-panel {
+    height: 40vh;
+    min-height: 200px;
+  }
+
+  .monaco-wrapper {
+    height: 100%;
+  }
+
+  .right-panel {
+    width: 100%;
+    height: 300px;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .editor-topbar {
+    padding: 6px 8px;
+  }
+
+  // Stack topbar buttons on mobile
+  .topbar-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+// Mobile (max 480px)
+@media (max-width: 480px) {
+  .editor-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .topbar-left {
+    font-size: 10px;
+  }
+
+  .file-panel {
+    height: 100px;
+  }
+
+  .code-panel {
+    height: 35vh;
+  }
+
+  .right-panel {
+    height: 250px;
+  }
+
+  .right-tabs .rtab {
+    font-size: 10px;
+    padding: 8px 4px;
+  }
+}
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &:hover {
+    background: var(--darker);
+  }
+
+  @media (max-width: 1024px) {
+    display: block;
+  }
 }
 @keyframes spin { to { transform: rotate(360deg); } }

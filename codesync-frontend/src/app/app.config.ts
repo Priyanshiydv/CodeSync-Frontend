@@ -4,7 +4,7 @@ import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@a
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { routes } from './app.routes';
-import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor-v2';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -12,18 +12,6 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptorsFromDi()),
     provideAnimations(),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    {
-      provide: NGX_MONACO_EDITOR_CONFIG,
-      useValue: {
-        baseUrl: 'assets',
-        defaultOptions: {
-          scrollBeyondLastLine: false,
-          automaticLayout: true,
-          minimap: { enabled: false },
-          fontSize: 14,
-          fontFamily: '"Cascadia Code", "Fira Code", monospace',
-        },
-      },
-    },
+    ...MonacoEditorModule.forRoot().providers ?? [],
   ],
 };
