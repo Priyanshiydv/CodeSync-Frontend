@@ -44,6 +44,10 @@
     <!-- Top Bar -->
     <div class="editor-topbar">
       <div class="topbar-left">
+        <button class="mobile-menu-btn"
+          (click)="showMobileSidebar = !showMobileSidebar">
+          ☰
+        </button>
         <span class="project-name">
           📁 {{ project?.name || 'Project' }}
         </span>
@@ -169,7 +173,7 @@
             <ngx-monaco-editor
               [options]="monacoOptions"
               [(ngModel)]="fileContent"
-              (init)="onEditorInit($event)"
+              (onInit)="onEditorInit($event)"
                style="height: 100%; width: 100%; display: block;">
             </ngx-monaco-editor>
           </div>
