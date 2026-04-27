@@ -1,210 +1,392 @@
-<div class="dash-wrap">
+<div class="admin-wrap">
 
   <!-- Sidebar -->
-  <aside class="sidebar admin-sidebar">
+  <aside class="admin-sidebar">
     <div class="sidebar-brand">
-      <div class="brand-box">&lt;/&gt;</div>
-      <span>CodeSync</span>
+      <div class="brand-box">⚡</div>
+      <span>CodeSync Admin</span>
     </div>
-    <div class="admin-badge">ADMIN PANEL</div>
 
     <nav class="sidebar-nav">
-      <button class="nav-item"
-        [class.active]="activeTab === 'users'"
-        (click)="switchTab('users')">
-        <span class="nav-ico">&#128101;</span>
-        <span>Manage Users</span>
-      </button>
-      <button class="nav-item"
-        [class.active]="activeTab === 'projects'"
-        (click)="switchTab('projects')">
-        <span class="nav-ico">&#128193;</span>
-        <span>All Projects</span>
-      </button>
-      <button class="nav-item"
-        [class.active]="activeTab === 'languages'"
-        (click)="switchTab('languages')">
-        <span class="nav-ico">&#128296;</span>
-        <span>Languages</span>
-      </button>
-      <button class="nav-item"
-        [class.active]="activeTab === 'broadcast'"
-        (click)="activeTab = 'broadcast'">
-        <span class="nav-ico">&#128226;</span>
-        <span>Broadcast</span>
-      </button>
+      <a class="nav-item" [class.active]="activeTab === 'dashboard'" (click)="switchTab('dashboard')">
+        <span>📊</span><span>Dashboard</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'users'" (click)="switchTab('users')">
+        <span>👥</span><span>Users</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'projects'" (click)="switchTab('projects')">
+        <span>📁</span><span>Projects</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'sessions'" (click)="switchTab('sessions')">
+        <span>🔴</span><span>Active Sessions</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'executions'" (click)="switchTab('executions')">
+        <span>▶</span><span>Executions</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'languages'" (click)="switchTab('languages')">
+        <span>🔧</span><span>Languages</span>
+      </a>
+      <a class="nav-item" [class.active]="activeTab === 'analytics'" (click)="switchTab('analytics')">
+        <span>📈</span><span>Analytics</span>
+      </a>
     </nav>
 
     <div class="sidebar-bottom">
-      <div class="user-chip">
-        <div class="user-ava admin-ava">
-          {{ user?.fullName?.charAt(0) || 'A' }}
-        </div>
-        <div class="user-info">
-          <span class="uname">{{ user?.fullName || 'Admin' }}</span>
-          <span class="urole admin-role">ADMIN</span>
+      <button class="broadcast-btn" (click)="showBroadcastModal = true">
+        📢 Broadcast
+      </button>
+      <button class="back-link" (click)="goToDashboard()">← Back to Dashboard</button>
+     
+      <div class="admin-chip">
+        <div class="admin-ava">{{ admin?.fullName?.charAt(0) || 'A' }}</div>
+        <div class="admin-info">
+          <span class="aname">{{ admin?.fullName || 'Admin' }}</span>
+          <span class="arole">Administrator</span>
         </div>
       </div>
-      <button class="logout-btn" (click)="logout()">
-        &#128682; Logout
-      </button>
+      <button class="logout-btn" (click)="logout()">🚪 Logout</button>
     </div>
   </aside>
 
-  <!-- Main -->
-  <main class="main-area">
+  <!-- Main Content -->
+  <main class="admin-main">
 
-    <div class="topbar">
-      <div>
-        <h1>Admin Dashboard</h1>
-        <p>Platform management and monitoring</p>
+    <!-- Header -->
+    <div class="admin-header">
+      <h1>
+        <span *ngIf="activeTab === 'dashboard'">📊 Platform Dashboard</span>
+        <span *ngIf="activeTab === 'users'">👥 User Management</span>
+        <span *ngIf="activeTab === 'projects'">📁 Project Management</span>
+        <span *ngIf="activeTab === 'sessions'">🔴 Active Collaboration Sessions</span>
+        <span *ngIf="activeTab === 'executions'">▶ Code Execution Jobs</span>
+        <span *ngIf="activeTab === 'languages'">🔧 Supported Languages</span>
+        <span *ngIf="activeTab === 'analytics'">📈 Platform Analytics</span>
+        <span *ngIf="activeTab === 'audit'">📋 Audit Logs</span>
+      </h1>
+      <div class="header-actions">
+        <input *ngIf="activeTab === 'users' || activeTab === 'projects'" 
+               type="text" 
+               placeholder="Search..." 
+               [(ngModel)]="searchTerm" 
+               class="search-input"/>
       </div>
     </div>
 
-    <!-- Users Tab -->
-    <div *ngIf="activeTab === 'users'">
-      <div class="section-title">
-        <h2>All Users</h2>
-        <span class="count-badge">{{ users.length }}</span>
+    <!-- DASHBOARD TAB -->
+    <div class="content-area" *ngIf="activeTab === 'dashboard'">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-value">{{ stats.totalUsers || 0 }}</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📁</div>
+          <div class="stat-value">{{ stats.totalProjects || 0 }}</div>
+          <div class="stat-label">Total Projects</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🔴</div>
+          <div class="stat-value">{{ stats.activeSessions || 0 }}</div>
+          <div class="stat-label">Active Sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">▶</div>
+          <div class="stat-value">{{ stats.executionsToday || 0 }}</div>
+          <div class="stat-label">Executions Today</div>
+        </div>
       </div>
 
-      <div class="loading-box" *ngIf="loading">
-        <div class="spin"></div>
+      <div class="dashboard-sections">
+        <div class="section">
+          <h3>🔴 Active Sessions</h3>
+          <button class="view-all" (click)="switchTab('sessions')">View All →</button>
+        </div>
+        <div class="section">
+          <h3>📢 Quick Actions</h3>
+          <div class="quick-actions">
+            <button class="qa-btn" (click)="switchTab('users')">Manage Users</button>
+            <button class="qa-btn" (click)="showBroadcastModal = true">Send Broadcast</button>
+            <button class="qa-btn" (click)="switchTab('languages')">Manage Languages</button>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="table-wrap" *ngIf="!loading">
+    <!-- USERS TAB -->
+    <div class="content-area" *ngIf="activeTab === 'users'">
+      <div class="table-wrap">
         <table class="data-table">
           <thead>
             <tr>
+              <th>ID</th>
               <th>User</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Provider</th>
               <th>Status</th>
+              <th>Joined</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let u of users">
+            <tr *ngFor="let u of filteredUsers">
+              <td>{{ u.userId }}</td>
               <td>
                 <div class="user-cell">
-                  <div class="mini-ava">
-                    {{ u.fullName?.charAt(0) || 'U' }}
-                  </div>
-                  <span>{{ u.fullName }}</span>
+                  <div class="user-ava-sm">{{ u.fullName?.charAt(0) || u.username?.charAt(0) }}</div>
+                  <span>{{ u.fullName || u.username }}</span>
                 </div>
               </td>
               <td>{{ u.email }}</td>
-              <td><span class="role-pill">{{ u.role }}</span></td>
-              <td>{{ u.provider || 'LOCAL' }}</td>
               <td>
-                <span class="status-pill"
-                  [class.inactive]="!u.isActive">
-                  {{ u.isActive ? 'Active' : 'Inactive' }}
-                </span>
+                <select [value]="u.role" (change)="changeRole(u.userId, $any($event.target).value)" class="role-select">
+                  <option value="DEVELOPER">Developer</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
               </td>
               <td>
-                <button class="btn-sm btn-danger"
-                  *ngIf="u.isActive"
-                  (click)="deactivateUser(u.userId)">
-                  Deactivate
-                </button>
+                <span class="status-badge" [class.inactive]="!u.isActive">
+                  {{ u.isActive ? 'Active' : 'Suspended' }}
+                </span>
+              </td>
+              <td>{{ u.createdAt | date:'shortDate' }}</td>
+              <td>
+                <div class="action-btns">
+                  <button *ngIf="u.isActive" class="btn-sm btn-warning" (click)="suspendUser(u.userId)">Suspend</button>
+                  <button *ngIf="!u.isActive" class="btn-sm btn-success" (click)="reactivateUser(u.userId)">Activate</button>
+                  <button class="btn-sm btn-danger" (click)="deleteUser(u.userId)">Delete</button>
+                </div>
               </td>
             </tr>
           </tbody>
         </table>
-        <p class="empty-msg" *ngIf="users.length === 0">
-          No users found
-        </p>
+        <div class="empty-state" *ngIf="filteredUsers.length === 0">
+          <p>No users found</p>
+        </div>
       </div>
     </div>
 
-    <!-- Projects Tab -->
-    <div *ngIf="activeTab === 'projects'">
-      <div class="section-title">
-        <h2>All Projects</h2>
-        <span class="count-badge">{{ projects.length }}</span>
+    <!-- PROJECTS TAB -->
+    <div class="content-area" *ngIf="activeTab === 'projects'">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Project</th>
+              <th>Owner</th>
+              <th>Language</th>
+              <th>Visibility</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of filteredProjects">
+              <td>{{ p.projectId }}</td>
+              <td>
+                <div class="project-cell">
+                  <span>{{ p.name }}</span>
+                  <span class="project-desc">{{ p.description }}</span>
+                </div>
+              </td>
+              <td>{{ p.ownerName }}</td>
+              <td><span class="lang-tag">{{ p.language }}</span></td>
+              <td>
+                <span class="vis-badge" [class.private]="p.visibility === 'PRIVATE'">
+                  {{ p.visibility }}
+                </span>
+              </td>
+              <td>{{ p.createdAt | date:'shortDate' }}</td>
+              <td>
+                <button class="btn-sm btn-danger" (click)="deleteProject(p.projectId)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SESSIONS TAB -->
+    <div class="content-area" *ngIf="activeTab === 'sessions'">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Session ID</th>
+              <th>Project</th>
+              <th>File</th>
+              <th>Owner</th>
+              <th>Participants</th>
+              <th>Started</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of activeSessions">
+              <td><code>{{ s.sessionId?.substring(0, 8) }}...</code></td>
+              <td>{{ s.projectName }}</td>
+              <td>{{ s.fileName }}</td>
+              <td>{{ s.ownerName }}</td>
+              <td>{{ s.participantCount }} / {{ s.maxParticipants }}</td>
+              <td>{{ s.createdAt | date:'shortTime' }}</td>
+              <td>
+                <button class="btn-sm btn-danger" (click)="endSession(s.sessionId)">End Session</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="empty-state" *ngIf="activeSessions.length === 0">
+          <p>No active sessions</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXECUTIONS TAB -->
+    <div class="content-area" *ngIf="activeTab === 'executions'">
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Job ID</th>
+              <th>User</th>
+              <th>Language</th>
+              <th>Status</th>
+              <th>Time</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let e of executions">
+              <td><code>{{ e.jobId?.substring(0, 8) }}...</code></td>
+              <td>{{ e.userName }}</td>
+              <td><span class="lang-tag">{{ e.language }}</span></td>
+              <td>
+                <span class="exec-status" [class]="e.status?.toLowerCase()">
+                  {{ e.status }}
+                </span>
+              </td>
+              <td>{{ e.executionTimeMs }}ms</td>
+              <td>{{ e.createdAt | date:'shortTime' }}</td>
+              <td>
+                <button class="btn-sm btn-warning" *ngIf="e.status === 'RUNNING' || e.status === 'QUEUED'" 
+                        (click)="cancelJob(e.jobId)">Cancel</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LANGUAGES TAB -->
+    <div class="content-area" *ngIf="activeTab === 'languages'">
+      <div class="section-header">
+        <h3>Supported Programming Languages</h3>
+        <button class="btn-add" (click)="showAddLanguageModal = true">+ Add Language</button>
       </div>
       <div class="table-wrap">
         <table class="data-table">
           <thead>
             <tr>
+              <th>ID</th>
               <th>Name</th>
-              <th>Language</th>
-              <th>Visibility</th>
-              <th>Stars</th>
-              <th>Forks</th>
+              <th>Version</th>
+              <th>Docker Image</th>
+              <th>Extension</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let p of projects">
-              <td>{{ p.name }}</td>
-              <td><span class="lang-tag">{{ p.language }}</span></td>
-              <td>{{ p.visibility }}</td>
-              <td>&#11088; {{ p.starCount || 0 }}</td>
-              <td>&#127860; {{ p.forkCount || 0 }}</td>
+            <tr *ngFor="let l of languages">
+              <td>{{ l.languageId }}</td>
+              <td><span class="lang-tag">{{ l.name }}</span></td>
+              <td>{{ l.version }}</td>
+              <td><code>{{ l.dockerImage }}</code></td>
+              <td>{{ l.fileExtension }}</td>
               <td>
-                <button class="btn-sm btn-danger"
-                  (click)="deleteProject(p.projectId)">
-                  Delete
-                </button>
+                <button class="btn-sm btn-danger" (click)="deleteLanguage(l.languageId)">Remove</button>
               </td>
             </tr>
           </tbody>
         </table>
-        <p class="empty-msg" *ngIf="projects.length === 0">
-          No projects found
-        </p>
       </div>
     </div>
 
-    <!-- Languages Tab -->
-    <div *ngIf="activeTab === 'languages'">
-      <div class="section-title">
-        <h2>Supported Languages</h2>
-        <span class="count-badge">{{ languages.length }}</span>
-      </div>
-      <div class="lang-grid">
-        <div class="lang-card" *ngFor="let l of languages">
-          <div class="lang-name">{{ l.name }}</div>
-          <div class="lang-version">v{{ l.version }}</div>
-          <div class="lang-ext">{{ l.fileExtension }}</div>
-          <span class="status-pill"
-            [class.inactive]="!l.isEnabled">
-            {{ l.isEnabled ? 'Enabled' : 'Disabled' }}
-          </span>
+    <!-- ANALYTICS TAB -->
+    <div class="content-area" *ngIf="activeTab === 'analytics'">
+      <div class="analytics-grid">
+        <div class="analytics-card">
+          <h3>Executions by Language</h3>
+          <div class="lang-stats">
+            <div class="lang-stat-item" *ngFor="let ls of languageStats">
+              <span class="lang-name">{{ ls.language }}</span>
+              <div class="lang-bar">
+                <div class="bar-fill" [style.width.%]="(ls.count / getMaxExecutions()) * 100"></div>
+              </div>
+              <span class="lang-count">{{ ls.count }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Broadcast Tab -->
-    <div *ngIf="activeTab === 'broadcast'">
-      <div class="section-title">
-        <h2>Send Platform Notification</h2>
-      </div>
-      <div class="broadcast-form">
-        <div class="form-group">
-          <label>Title</label>
-          <input type="text"
-            [(ngModel)]="broadcastMsg.title"
-            name="title"
-            placeholder="Notification title"
-            class="finput"/>
-        </div>
-        <div class="form-group">
-          <label>Message</label>
-          <textarea [(ngModel)]="broadcastMsg.message"
-            name="message" rows="4"
-            placeholder="Your message to all users..."
-            class="finput"></textarea>
-        </div>
-        <button class="btn-broadcast"
-          (click)="sendBroadcast()">
-          &#128226; Send to All Users
-        </button>
-      </div>
+<!-- Add Language Modal -->
+<div class="modal-overlay" *ngIf="showAddLanguageModal" (click)="showAddLanguageModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>➕ Add Supported Language</h3>
+      <button class="close-btn" (click)="showAddLanguageModal = false">✕</button>
     </div>
+    <div class="form-group">
+      <label>Language Name</label>
+      <input type="text" [(ngModel)]="newLanguage.name" placeholder="Python" class="finput"/>
+    </div>
+    <div class="form-group">
+      <label>Version</label>
+      <input type="text" [(ngModel)]="newLanguage.version" placeholder="3.11" class="finput"/>
+    </div>
+    <div class="form-group">
+      <label>Docker Image</label>
+      <input type="text" [(ngModel)]="newLanguage.dockerImage" placeholder="python:3.11-slim" class="finput"/>
+    </div>
+    <div class="form-group">
+      <label>File Extension</label>
+      <input type="text" [(ngModel)]="newLanguage.fileExtension" placeholder=".py" class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showAddLanguageModal = false">Cancel</button>
+      <button class="btn-create" (click)="addLanguage()">Add Language</button>
+    </div>
+  </div>
+</div>
 
-  </main>
+<!-- Broadcast Modal -->
+<div class="modal-overlay" *ngIf="showBroadcastModal" (click)="showBroadcastModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>📢 Send Platform Broadcast</h3>
+      <button class="close-btn" (click)="showBroadcastModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" [(ngModel)]="broadcast.title" placeholder="Announcement" class="finput"/>
+    </div>
+    <div class="form-group">
+      <label>Message</label>
+      <textarea [(ngModel)]="broadcast.message" placeholder="Your message..." class="finput" rows="4"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Target Audience</label>
+      <select [(ngModel)]="broadcast.targetRole" class="finput">
+        <option value="ALL">All Users</option>
+        <option value="DEVELOPER">Developers Only</option>
+        <option value="ADMIN">Admins Only</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showBroadcastModal = false">Cancel</button>
+      <button class="btn-create" (click)="sendBroadcast()">Send Broadcast</button>
+    </div>
+  </div>
 </div>
