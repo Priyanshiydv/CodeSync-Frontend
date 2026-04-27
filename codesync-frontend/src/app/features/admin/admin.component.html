@@ -29,6 +29,10 @@
       <a class="nav-item" [class.active]="activeTab === 'analytics'" (click)="switchTab('analytics')">
         <span>📈</span><span>Analytics</span>
       </a>
+      <!-- ADD — Audit Logs nav item right below Analytics -->
+      <a class="nav-item" [class.active]="activeTab === 'audit'" (click)="switchTab('audit')">
+        <span>📋</span><span>Audit Logs</span>
+      </a>
     </nav>
 
     <div class="sidebar-bottom">
@@ -49,7 +53,7 @@
   </aside>
 
   <!-- Main Content -->
-  <main class="admin-main">
+  <div class="admin-main">
 
     <!-- Header -->
     <div class="admin-header">
@@ -252,15 +256,16 @@
               <th>User</th>
               <th>Language</th>
               <th>Status</th>
-              <th>Time</th>
-              <th>Created</th>
+              <th>Duration</th>
+              <th>Started At</th>
+              <th>Completed At</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let e of executions">
               <td><code>{{ e.jobId?.substring(0, 8) }}...</code></td>
-              <td>{{ e.userName }}</td>
+              <td>{{ e.userName || e.userId || 'Unknown' }}</td>
               <td><span class="lang-tag">{{ e.language }}</span></td>
               <td>
                 <span class="exec-status" [class]="e.status?.toLowerCase()">
@@ -268,10 +273,18 @@
                 </span>
               </td>
               <td>{{ e.executionTimeMs }}ms</td>
-              <td>{{ e.createdAt | date:'shortTime' }}</td>
+              <td>{{ e.createdAt | date:'dd/MM/yy, h:mm:ss a' }}</td>
+              <td>{{ e.completedAt ? (e.completedAt | date:'dd/MM/yy, h:mm:ss a') : '—' }}</td>
+
               <td>
                 <button class="btn-sm btn-warning" *ngIf="e.status === 'RUNNING' || e.status === 'QUEUED'" 
                         (click)="cancelJob(e.jobId)">Cancel</button>
+                  <span *ngIf="e.status !== 'RUNNING' && e.status !== 'QUEUED'" class="no-action">—</span>
+              </td>
+            </tr>
+            <tr *ngIf="executions.length === 0">
+              <td colspan="8" class="empty-row">
+                No execution jobs found.
               </td>
             </tr>
           </tbody>
@@ -330,63 +343,142 @@
         </div>
       </div>
     </div>
+    <!-- AUDIT LOGS TAB -->
+    <div class="content-area" *ngIf="activeTab === 'audit'">
 
-<!-- Add Language Modal -->
-<div class="modal-overlay" *ngIf="showAddLanguageModal" (click)="showAddLanguageModal = false">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <div class="modal-head">
-      <h3>➕ Add Supported Language</h3>
-      <button class="close-btn" (click)="showAddLanguageModal = false">✕</button>
-    </div>
-    <div class="form-group">
-      <label>Language Name</label>
-      <input type="text" [(ngModel)]="newLanguage.name" placeholder="Python" class="finput"/>
-    </div>
-    <div class="form-group">
-      <label>Version</label>
-      <input type="text" [(ngModel)]="newLanguage.version" placeholder="3.11" class="finput"/>
-    </div>
-    <div class="form-group">
-      <label>Docker Image</label>
-      <input type="text" [(ngModel)]="newLanguage.dockerImage" placeholder="python:3.11-slim" class="finput"/>
-    </div>
-    <div class="form-group">
-      <label>File Extension</label>
-      <input type="text" [(ngModel)]="newLanguage.fileExtension" placeholder=".py" class="finput"/>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" (click)="showAddLanguageModal = false">Cancel</button>
-      <button class="btn-create" (click)="addLanguage()">Add Language</button>
-    </div>
-  </div>
-</div>
+      <div class="panel-header-row">
+        <h3>📋 Audit Logs</h3>
+        <button class="btn-refresh" (click)="loadAuditLogs()">
+          🔄 Refresh
+        </button>
+      </div>
 
-<!-- Broadcast Modal -->
-<div class="modal-overlay" *ngIf="showBroadcastModal" (click)="showBroadcastModal = false">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <div class="modal-head">
-      <h3>📢 Send Platform Broadcast</h3>
-      <button class="close-btn" (click)="showBroadcastModal = false">✕</button>
+      <div class="loading-state" *ngIf="auditLoading">
+        <div class="spinner-sm"></div>
+        Loading audit logs...
+      </div>
+
+      <div class="audit-table-wrap" *ngIf="!auditLoading">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Description</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of auditLogs">
+              <td class="time-col">
+                {{ log.createdAt | date:'dd/MM/yy, h:mm:ss a' }}
+              </td>
+              <td class="actor-col">
+                <span class="actor-badge">
+                  {{ log.actorUsername }}
+                </span>
+              </td>
+              <td class="action-col">
+                <span class="action-badge"
+                  [class]="'action-' + getActionColor(log.action)">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td class="entity-col">
+                {{ log.entityType }}/{{ log.entityId }}
+              </td>
+              <td class="desc-col">
+                {{ log.description }}
+              </td>
+              <td class="ip-col">
+                {{ log.ipAddress || '—' }}
+              </td>
+            </tr>
+            <tr *ngIf="auditLogs.length === 0">
+              <td colspan="6" class="empty-row">
+                No audit logs yet. Perform an admin action first.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pagination-row" *ngIf="auditLogs.length > 0">
+          <button class="page-btn"
+            [disabled]="auditPage === 1"
+            (click)="auditPage = auditPage - 1; loadAuditLogs()">
+            ← Prev
+          </button>
+          <span class="page-num">Page {{ auditPage }}</span>
+          <button class="page-btn"
+            [disabled]="auditLogs.length < 50"
+            (click)="auditPage = auditPage + 1; loadAuditLogs()">
+            Next →
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Title</label>
-      <input type="text" [(ngModel)]="broadcast.title" placeholder="Announcement" class="finput"/>
+
+
+    <!-- Add Language Modal -->
+    <div class="modal-overlay" *ngIf="showAddLanguageModal" (click)="showAddLanguageModal = false">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <h3>➕ Add Supported Language</h3>
+          <button class="close-btn" (click)="showAddLanguageModal = false">✕</button>
+        </div>
+        <div class="form-group">
+          <label>Language Name</label>
+          <input type="text" [(ngModel)]="newLanguage.name" placeholder="Python" class="finput"/>
+        </div>
+        <div class="form-group">
+          <label>Version</label>
+          <input type="text" [(ngModel)]="newLanguage.version" placeholder="3.11" class="finput"/>
+        </div>
+        <div class="form-group">
+          <label>Docker Image</label>
+          <input type="text" [(ngModel)]="newLanguage.dockerImage" placeholder="python:3.11-slim" class="finput"/>
+        </div>
+        <div class="form-group">
+          <label>File Extension</label>
+          <input type="text" [(ngModel)]="newLanguage.fileExtension" placeholder=".py" class="finput"/>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="showAddLanguageModal = false">Cancel</button>
+          <button class="btn-create" (click)="addLanguage()">Add Language</button>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Message</label>
-      <textarea [(ngModel)]="broadcast.message" placeholder="Your message..." class="finput" rows="4"></textarea>
-    </div>
-    <div class="form-group">
-      <label>Target Audience</label>
-      <select [(ngModel)]="broadcast.targetRole" class="finput">
-        <option value="ALL">All Users</option>
-        <option value="DEVELOPER">Developers Only</option>
-        <option value="ADMIN">Admins Only</option>
-      </select>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" (click)="showBroadcastModal = false">Cancel</button>
-      <button class="btn-create" (click)="sendBroadcast()">Send Broadcast</button>
+
+    <!-- Broadcast Modal -->
+    <div class="modal-overlay" *ngIf="showBroadcastModal" (click)="showBroadcastModal = false">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-head">
+          <h3>📢 Send Platform Broadcast</h3>
+          <button class="close-btn" (click)="showBroadcastModal = false">✕</button>
+        </div>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" [(ngModel)]="broadcast.title" placeholder="Announcement" class="finput"/>
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea [(ngModel)]="broadcast.message" placeholder="Your message..." class="finput" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Target Audience</label>
+          <select [(ngModel)]="broadcast.targetRole" class="finput">
+            <option value="ALL">All Users</option>
+            <option value="DEVELOPER">Developers Only</option>
+            <option value="ADMIN">Admins Only</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="showBroadcastModal = false">Cancel</button>
+          <button class="btn-create" (click)="sendBroadcast()">Send Broadcast</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
