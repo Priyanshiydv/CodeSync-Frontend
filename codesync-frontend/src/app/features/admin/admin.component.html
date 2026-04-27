@@ -68,6 +68,7 @@
         <span *ngIf="activeTab === 'audit'">📋 Audit Logs</span>
       </h1>
       <div class="header-actions">
+        <app-theme-toggle></app-theme-toggle>
         <input *ngIf="activeTab === 'users' || activeTab === 'projects'" 
                type="text" 
                placeholder="Search..." 
