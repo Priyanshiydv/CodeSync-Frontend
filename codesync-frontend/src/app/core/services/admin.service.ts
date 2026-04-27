@@ -105,4 +105,25 @@ export class AdminService {
             targetRole: data.targetRole
         });
     }   
+    // ADD — Audit Log endpoints
+    // Case study §2.4 — admin views audit logs
+
+    getAuditLogs(page: number = 1, pageSize: number = 50): Observable<any[]> {
+        // FIX: Remove extra '/admin' from URL
+        return this.http.get<any[]>(
+            `http://localhost:5157/api/admin/audit-logs?page=${page}&pageSize=${pageSize}`
+        );
+    }
+
+    getAuditLogsByActor(actorId: number): Observable<any[]> {
+        return this.http.get<any[]>(
+            `http://localhost:5157/api/admin/audit-logs/actor/${actorId}`
+        );
+    }
+
+    getAuditLogsByEntity(entityType: string, entityId: string): Observable<any[]> {
+        return this.http.get<any[]>(
+            `http://localhost:5157/api/admin/audit-logs/entity/${entityType}/${entityId}`
+        );
+    }
 }
