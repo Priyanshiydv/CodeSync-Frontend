@@ -8,11 +8,12 @@ import { ExecutionService } from '../../core/services/execution.service';
 import { VersionService } from '../../core/services/version.service';
 import { CommentService } from '../../core/services/comment.service';
 import { ProjectService } from '../../core/services/project.service';
+import { NotificationComponent } from '../notification/notification.component';
 
 @Component({
   selector: 'app-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, NotificationComponent],
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
@@ -57,7 +58,20 @@ export class EditorComponent implements OnInit, OnDestroy {
     content: '',
     lineNumber: 1,
     parentCommentId: null
+  
   };
+  // Comment replies
+  replyingTo: number | null = null;
+  replyContent = '';
+  commentReplies: { [commentId: number]: any[] } = {};
+
+  // Branches & Tags
+  branches: string[] = ['main'];
+  currentBranch = 'main';
+  showCreateBranchModal = false;
+  showTagModal = false;
+  newBranchName = '';
+  newTagName = '';
 
   // Create file/folder
   newFileName = '';
@@ -86,6 +100,7 @@ export class EditorComponent implements OnInit, OnDestroy {
     });
     this.loadProject();
     this.loadFiles();
+    this.loadBranches();
    }
 
   ngOnDestroy() {
@@ -284,7 +299,7 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   loadSnapshots() {
     if (!this.selectedFile) return;
-    this.versionService.getHistory(
+    this.versionService.getByFile(
       this.selectedFile.fileId).subscribe({
       next: (res: any[]) => this.snapshots = res,
       error: () => this.snapshots = []
@@ -345,7 +360,11 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   loadComments(fileId: number) {
     this.commentService.getByFile(fileId).subscribe({
-      next: (res: any[]) => this.comments = res,
+      next: (res: any[]) => {
+        this.comments = res;
+        // Load replies for each comment
+        this.comments.forEach(c => this.loadReplies(c.commentId));
+      },
       error: () => this.comments = []
     });
   }
@@ -391,6 +410,40 @@ export class EditorComponent implements OnInit, OnDestroy {
     });
   }
 
+  toggleReply(commentId: number) {
+    this.replyingTo = this.replyingTo === commentId ? null : commentId;
+    this.replyContent = '';
+  }
+
+  loadReplies(commentId: number) {
+    this.commentService.getReplies(commentId).subscribe({
+      next: (res: any[]) => {
+        this.commentReplies[commentId] = res;
+      },
+      error: () => this.commentReplies[commentId] = []
+    });
+  }
+
+  addReply(parentComment: any) {
+    if (!this.replyContent.trim() || !this.selectedFile) return;
+
+    this.commentService.addComment({
+      projectId: this.projectId,
+      fileId: this.selectedFile.fileId,
+      content: this.replyContent,
+      lineNumber: parentComment.lineNumber,
+      parentCommentId: parentComment.commentId
+    }).subscribe({
+      next: () => {
+        this.replyContent = '';
+        this.replyingTo = null;
+        this.loadReplies(parentComment.commentId);
+        alert('Reply added!');
+      },
+      error: (err) => alert('Failed to add reply')
+    });
+  }
+
   getUserId(): number {
     try {
       const token = this.auth.getToken();
@@ -413,6 +466,79 @@ export class EditorComponent implements OnInit, OnDestroy {
       'json': '📋', 'html': '🌐', 'css': '🎨'
     };
     return icons[ext || ''] || '📄';
+  }
+  loadBranches() {
+    // Start with main branch only (backend doesn't have list endpoint)
+    this.branches = ['main'];
+    this.currentBranch = 'main';
+  }
+
+  switchBranch(branch: string) {
+  this.currentBranch = branch;
+  this.versionService.getSnapshotsByBranch(branch).subscribe({
+    next: (res: any[]) => {
+      this.snapshots = res;
+    },
+    error: (err) => {
+      console.log('Error loading branch snapshots:', err);
+      this.snapshots = [];
+    }
+  });
+}
+
+  createBranch() {
+    if (!this.newBranchName.trim() || !this.selectedFile) return;
+    
+    // Get latest snapshot for this file
+    const latestSnapshot = this.snapshots[0];
+    if (!latestSnapshot) {
+      alert('Create a snapshot first!');
+      return;
+    }
+    const snapshotId = latestSnapshot.snapshotId || latestSnapshot.SnapshotId;
+
+
+    this.versionService.createBranch({
+      projectId: this.projectId,
+      fileId: this.selectedFile.fileId,
+      branchName: this.newBranchName,
+      fromSnapshotId: snapshotId
+    }).subscribe({
+      next: () => {
+        this.showCreateBranchModal = false;
+        if (!this.branches.includes(this.newBranchName)) {
+        this.branches.push(this.newBranchName);
+      }
+      this.currentBranch = this.newBranchName;
+
+        this.newBranchName = '';
+        alert('Branch created!');
+      },
+      error: (err) => alert(err.error?.message || 'Failed to create branch')
+    });
+  }
+
+  tagCurrentSnapshot() {
+    if (!this.newTagName.trim() || !this.selectedFile) return;
+    
+    const latestSnapshot = this.snapshots[0];
+    if (!latestSnapshot) {
+      alert('Create a snapshot first!');
+      return;
+    }
+
+    this.versionService.tagSnapshot({
+      snapshotId: latestSnapshot.snapshotId,
+      tag: this.newTagName
+    }).subscribe({
+      next: () => {
+        this.showTagModal = false;
+        this.newTagName = '';
+        this.loadSnapshots();
+        alert('Tag added!');
+      },
+      error: (err) => alert(err.error?.message || 'Failed to add tag')
+    });
   }
 
   logout() { this.auth.logout(); }

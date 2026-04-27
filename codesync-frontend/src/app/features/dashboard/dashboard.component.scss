@@ -492,3 +492,9 @@ textarea.finput { resize: vertical; min-height: 80px; }
     margin-bottom: 20px !important;
   }
 }
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
