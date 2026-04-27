@@ -6,12 +6,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { AdminService } from '../../core/services/admin.service';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-
+import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ThemeToggleComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss']
 })
