@@ -72,7 +72,7 @@
         <div class="stat-lbl">Total Stars</div>
       </div>
       <div class="stat-card">
-        <div class="stat-num">DEV</div>
+        <div class="stat-num">DEVELOPER</div>
         <div class="stat-lbl">Your Role</div>
       </div>
     </div>
@@ -131,6 +131,10 @@
             <span>{{ p.createdAt | date:'mediumDate' }}</span>
           </div>
           <div class="proj-actions">
+            <a class="btn-sm btn-open"
+              [routerLink]="['/editor', p.projectId]">
+              ▶ Open
+            </a>
             <button class="btn-sm btn-danger"
               (click)="deleteProject(p.projectId)">
               🗑️ Delete
@@ -159,6 +163,7 @@
             <span>⭐ {{ p.starCount || 0 }}</span>
             <span>🍴 {{ p.forkCount || 0 }}</span>
           </div>
+          
           <div class="proj-actions">
             <button class="btn-sm btn-star"
               (click)="starProject(p.projectId)">
@@ -168,6 +173,10 @@
               (click)="forkProject(p.projectId)">
               🍴 Fork
             </button>
+            <a class="btn-sm btn-open"
+              [routerLink]="['/editor', p.projectId]">
+              ▶ Open
+            </a>
           </div>
         </div>
       </div>
@@ -177,7 +186,7 @@
 </div>
 
 <!-- Create Project Modal -->
-<div class="modal-overlay" *ngIf="showCreateModal">
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="showCreateModal = false">
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal-head">
       <h3>🚀 Create New Project</h3>
