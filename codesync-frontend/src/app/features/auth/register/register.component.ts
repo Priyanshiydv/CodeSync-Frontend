@@ -14,6 +14,7 @@ import { AuthService } from '../../../core/services/auth.service';
 export class RegisterComponent {
   data = {
     fullName: '',
+    username: '',
     email: '',
     password: '',
     confirm: ''
@@ -32,18 +33,19 @@ export class RegisterComponent {
         this.error = 'Passwords do not match!';
         return;
     }
+    if (this.data.username.trim().length < 3) {
+      this.error = 'Username must be at least 3 characters!';
+      return;
+    }
     this.loading = true;
     this.error = '';
 
-    // Generate username from email automatically
-    const username = this.data.email.split('@')[0];
-
     this.auth.register({
         fullName: this.data.fullName,
-        username: username,
+        username: this.data.username.trim(),
         email: this.data.email,
         password: this.data.password,
-        role: 'Developer'   // ← capital D, lowercase rest
+        role: 'Developer'   
     }).subscribe({
         next: () => {
         this.loading = false;

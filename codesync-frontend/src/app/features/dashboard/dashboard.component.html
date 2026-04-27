@@ -51,6 +51,7 @@
           {{ user?.fullName || user?.username || 'Developer' }}!</p>
       </div>
       <div class="topbar-actions">
+        <app-theme-toggle></app-theme-toggle>
         <app-notification></app-notification>
         <button class="btn-create" (click)="showCreateModal = true">
           + New Project

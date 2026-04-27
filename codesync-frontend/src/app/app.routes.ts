@@ -13,6 +13,15 @@ export const routes: Routes = [
       import('./features/home/home.component')
         .then(m => m.HomeComponent)
   },
+   
+  // OAuth2 callback — handles Google/GitHub redirect with token
+  // no guard needed — this is the landing page after OAuth
+   {
+    path: 'auth/oauth-callback',
+    loadComponent: () =>
+      import('./features/auth/oauth-callback/oauth-callback.component')
+        .then(m => m.OauthCallbackComponent)
+  },
 
   // Guest only — logged in users redirected away
   {

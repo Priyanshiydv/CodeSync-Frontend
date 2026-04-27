@@ -6,12 +6,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { AdminService } from '../../core/services/admin.service';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-
+import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ThemeToggleComponent],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss']
 })
@@ -44,6 +44,11 @@ export class AdminComponent implements OnInit {
   // Forms
   newLanguage = { name: '', dockerImage: '', version: '', fileExtension: '' };
   broadcast = { title: '', message: '', targetRole: 'ALL' };
+
+  // ADD — Audit logs
+  auditLogs: any[] = [];
+  auditLoading = false;
+  auditPage = 1;
 
   constructor(
     private auth: AuthService,
@@ -167,6 +172,7 @@ export class AdminComponent implements OnInit {
     if (tab === 'languages') this.loadLanguages();
     if (tab === 'analytics') this.loadLanguageStats();
     if (tab === 'dashboard') this.loadStats();
+    if (tab === 'audit') this.loadAuditLogs();
   }
 
   suspendUser(id: number) {
@@ -276,6 +282,41 @@ export class AdminComponent implements OnInit {
     this.activeTab = 'dashboard';
     this.loadStats();
   }
+
+  // ADD — load audit logs
+  loadAuditLogs(): void {
+    this.auditLoading = true;
+    this.adminService.getAuditLogs(this.auditPage).subscribe({
+      next: (logs: any[]) => {
+        this.auditLogs = logs;
+        this.auditLoading = false;
+      },
+      error: () => this.auditLoading = false
+    });
+  }
+
+  // ADD — format action badge color
+  getActionColor(action: string): string {
+    if (action.includes('DELETE')) return 'danger';
+    if (action.includes('SUSPEND')) return 'warning';
+    if (action.includes('REACTIVATE')) return 'success';
+    if (action.includes('ROLE')) return 'info';
+    return 'default';
+  }
+
+  formatDate(dateString: string): string {
+  if (!dateString) return '—';
+  const date = new Date(dateString);
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+}
 
   logout() { this.auth.logout(); }
 }

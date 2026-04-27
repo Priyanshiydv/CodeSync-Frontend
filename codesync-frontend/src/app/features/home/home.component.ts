@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { ProjectService } from '../../core/services/project.service';
@@ -42,12 +42,29 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private auth: AuthService,
-    private projectService: ProjectService) { }
+    private projectService: ProjectService,
+    private route: ActivatedRoute ) { }
 
   ngOnInit() {
     this.isLoggedIn = this.auth.isLoggedIn();
     this.loadProjects();
-  }
+
+    // ADD — handle scroll on fragment
+      this.route.fragment.subscribe(fragment => {
+        if (fragment) {
+          setTimeout(() => {
+            const el = document.getElementById(fragment);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }, 300);
+        }
+      });
+    }
+
+    // ADD — scroll to projects section
+    scrollToProjects(): void {
+      const el = document.getElementById('projects');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
 
   loadProjects() {
     this.projectService.getPublicProjects().subscribe({

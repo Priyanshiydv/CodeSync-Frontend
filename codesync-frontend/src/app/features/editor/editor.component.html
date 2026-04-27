@@ -44,6 +44,10 @@
     <!-- Top Bar -->
     <div class="editor-topbar">
       <div class="topbar-left">
+        <button class="mobile-menu-btn"
+          (click)="showMobileSidebar = !showMobileSidebar">
+          ☰
+        </button>
         <span class="project-name">
           📁 {{ project?.name || 'Project' }}
         </span>
@@ -80,6 +84,15 @@
           (click)="cancelExecution()">
           ⏹ Stop
         </button>
+        <button class="tb-btn collab-btn" 
+          (click)="currentSession ? null : startSession()"
+          [class.active]="currentSession">
+          <span *ngIf="!currentSession">🔴 Start Session</span>
+          <span *ngIf="currentSession">🟢 Session Active</span>
+        </button>
+        <button class="tb-btn join-btn" *ngIf="!currentSession" (click)="showJoinModal = true">
+          🔗 Join
+        </button>     
       </div>
     </div>
 
@@ -155,14 +168,18 @@
               {{ fileContent.length }} chars
             </span>
           </div>
-          <textarea
-            class="code-textarea"
-            [(ngModel)]="fileContent"
-            [placeholder]="'// Write your '
-              + (selectedFile?.language || 'code')
-              + ' here...'"
-            spellcheck="false">
-          </textarea>
+          <!-- Monaco Editor -->
+          <div class="monaco-wrapper">
+            <ngx-monaco-editor
+              [options]="monacoOptions"
+              [(ngModel)]="fileContent"
+              (onInit)="onEditorInit($event)"
+               style="height: 100%; width: 100%; display: block;">
+            </ngx-monaco-editor>
+          </div>
+          <div class="editor-empty" *ngIf="!selectedFile">
+            <p>Select a file to start editing</p>
+          </div>
         </div>
       </div>
 
@@ -552,6 +569,62 @@
     <div class="modal-footer">
       <button class="btn-cancel" (click)="showTagModal = false">Cancel</button>
       <button class="btn-create" (click)="tagCurrentSnapshot()">Add Tag</button>
+    </div>
+  </div>
+</div>
+
+<!-- Session Modal -->
+<div class="modal-overlay" *ngIf="showSessionModal" (click)="showSessionModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🔴 Collaboration Session</h3>
+      <button class="close-btn" (click)="showSessionModal = false">✕</button>
+    </div>
+    
+    <div class="session-info">
+      <label>Share this link:</label>
+      <div class="link-box">
+        <code>{{ sessionLink }}</code>
+        <button class="copy-btn" (click)="copySessionLink()">📋 Copy</button>
+      </div>
+    </div>
+
+    <div class="participants-section">
+      <h4>👥 Participants ({{ participants.length }})</h4>
+      <div class="participant-list">
+        <div class="participant-item" *ngFor="let p of participants">
+          <span class="participant-color" [style.background]="p.color"></span>
+          <span>User {{ p.userId }}</span>
+          <span class="participant-role">{{ p.role }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showSessionModal = false">Close</button>
+      <button class="btn-danger" (click)="endSession()">End Session</button>
+    </div>
+  </div>
+</div>
+
+<!-- Join Session Modal -->
+<div class="modal-overlay" *ngIf="showJoinModal" (click)="showJoinModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🔗 Join Session</h3>
+      <button class="close-btn" (click)="showJoinModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Session ID / Link</label>
+      <input type="text" [(ngModel)]="joinSessionId" placeholder="Enter session ID or paste link" class="finput"/>
+    </div>
+    <div class="form-group">
+      <label>Password (if required)</label>
+      <input type="password" [(ngModel)]="joinPassword" placeholder="Optional" class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showJoinModal = false">Cancel</button>
+      <button class="btn-create" (click)="joinSession()">Join Session</button>
     </div>
   </div>
 </div>
