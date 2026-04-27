@@ -101,4 +101,20 @@ export class AuthService {
       this.router.navigate(['/home']);
     }
   }
+
+  // ADD — stores JWT token from OAuth2 callback
+  storeToken(token: string): void {
+    localStorage.setItem('token', token);
+    // Decode role from token and store it
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const role = payload[
+        'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+      ] ?? 'Developer';
+      localStorage.setItem('role', role);
+      console.log('Role stored:', role);
+    } catch {
+      localStorage.setItem('role', 'Developer');
+    }
+  }
 }

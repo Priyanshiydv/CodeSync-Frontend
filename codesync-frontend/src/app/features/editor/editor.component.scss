@@ -15,7 +15,8 @@
   position: fixed;
   height: 100vh;
   left: 0; top: 0;
-  z-index: 50;
+  z-index: 999;
+  transition: left 0.3s ease;
 }
 
 .sidebar-brand {
@@ -339,6 +340,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  height: 100%;
 }
 
 .code-header {
@@ -1119,4 +1121,257 @@ select.finput {
   color: var(--text-muted);
 }
 
+.collab-btn {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+  
+  &.active {
+    background: rgba(76, 175, 80, 0.15);
+    color: var(--success);
+  }
+}
+
+.join-btn {
+  background: rgba(108, 99, 255, 0.15);
+  color: var(--primary);
+}
+
+.session-info {
+  margin-bottom: 20px;
+  
+  label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    display: block;
+  }
+}
+
+.link-box {
+  display: flex;
+  gap: 8px;
+  
+  code {
+    flex: 1;
+    padding: 10px;
+    background: var(--darker);
+    border-radius: 8px;
+    font-size: 12px;
+    word-break: break-all;
+  }
+}
+
+.copy-btn {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.participants-section {
+  margin-top: 20px;
+  
+  h4 {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+}
+
+.participant-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.participant-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.participant-role {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.btn-danger {
+  padding: 10px 20px;
+  background: rgba(244, 67, 54, 0.15);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.monaco-wrapper {
+  width: 100%;
+  height: calc(100vh - 160px);
+  min-height: 500px;
+  overflow: hidden;
+}
+
+::ng-deep .monaco-editor-instance {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+::ng-deep .editor-container {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.remote-cursor {
+  background: rgba(255, 165, 0, 0.3);
+  border-left: 2px solid orange;
+}
+// ─── Responsive Breakpoints ────────────────────────────────────────────────
+
+// Tablet (max 1024px) — hide right panel, collapse file panel
+@media (max-width: 1024px) {
+  .editor-main {
+    margin-left: 0;
+  }
+
+  .editor-sidebar {
+    left: -220px;
+  }
+
+  .editor-sidebar.mobile-open {
+    left: 0;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 998;
+  }
+
+  .sidebar-overlay.visible {
+    display: block;
+  }
+  .tb-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .file-panel {
+    width: 160px;
+  }
+
+  .right-panel {
+    width: 240px;
+  }
+}
+
+// Small tablet / large mobile (max 768px)
+@media (max-width: 768px) {
+  .editor-body {
+    flex-direction: column;
+  }
+
+  .file-panel {
+    width: 100%;
+    height: 140px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+
+    .file-list {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 6px;
+    }
+
+    .file-item {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+  }
+
+  .code-panel {
+    height: 40vh;
+    min-height: 200px;
+  }
+
+  .monaco-wrapper {
+    height: 100%;
+  }
+
+  .right-panel {
+    width: 100%;
+    height: 300px;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .editor-topbar {
+    padding: 6px 8px;
+  }
+
+  // Stack topbar buttons on mobile
+  .topbar-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+// Mobile (max 480px)
+@media (max-width: 480px) {
+  .editor-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .topbar-left {
+    font-size: 10px;
+  }
+
+  .file-panel {
+    height: 100px;
+  }
+
+  .code-panel {
+    height: 35vh;
+  }
+
+  .right-panel {
+    height: 250px;
+  }
+
+  .right-tabs .rtab {
+    font-size: 10px;
+    padding: 8px 4px;
+  }
+}
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &:hover {
+    background: var(--darker);
+  }
+
+  @media (max-width: 1024px) {
+    display: block;
+  }
+}
 @keyframes spin { to { transform: rotate(360deg); } }
