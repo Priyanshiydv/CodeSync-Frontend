@@ -432,6 +432,24 @@ export class EditorComponent implements OnInit, OnDestroy {
     }
     return null;
   }
+  renameFile(file: any) {
+  const newName = prompt("Enter new name:", file.name);
+  if (newName && newName !== file.name) {
+    this.fileService.renameFile(file.fileId, { newName: newName }).subscribe({
+      next: () => {
+        this.loadFiles();
+        if (this.selectedFile?.fileId === file.fileId) {
+          this.selectedFile.name = newName;
+         }
+          alert('File renamed successfully!');
+        },
+        error: (err) => {
+          console.error('Rename error:', err);
+          alert('Failed to rename file: ' + (err.error?.message || 'Unknown error'));
+        }
+      });
+    }
+  }
 
   // ─── Execution ────────────────────────────────────────────────────────────
 
@@ -484,8 +502,12 @@ export class EditorComponent implements OnInit, OnDestroy {
         this.executionService.onJobCompleted((id, stdout, stderr, exitCode) => {
           this.jobStatus = 'COMPLETED';
           this.isRunning = false;
-          this.output = stdout;
-          this.outputError = stderr;
+          if(!this.output && stdout){
+            this.output = stdout;
+          }
+          if(!this.outputError && stderr){
+            this.outputError = stderr;
+          }
           this.executionService.disconnectFromJob(jobId);
         });
 

@@ -98,22 +98,12 @@
 
     <!-- Editor Body -->
     <div class="editor-body">
-
-      <!-- File Tree Panel -->
-        <div class="file-panel">
+      <div class="file-panel">
           <div class="panel-header">
             <span>FILES</span>
             <div class="panel-actions">
-              <button class="icon-btn"
-                title="New File"
-                (click)="showCreateFileModal = true">
-                +📄
-              </button>
-              <button class="icon-btn"
-                title="New Folder"
-                (click)="showCreateFolderModal = true">
-                +📁
-              </button>
+              <button class="icon-btn" title="New File" (click)="showCreateFileModal = true">+📄</button>
+              <button class="icon-btn" title="New Folder" (click)="showCreateFolderModal = true">+📁</button>
             </div>
           </div>
 
@@ -122,55 +112,38 @@
               No files yet. Create one!
             </div>
             
-            <!-- Nested folder/file tree -->
-            <div *ngFor="let item of files">
-              <!-- FOLDER -->
-              <div *ngIf="item.isFolder" class="folder-item">
-                <div class="folder-header" (click)="toggleFolder(item)">
-                  <span class="folder-icon">📁</span>
-                  <span class="folder-name">{{ item.name }}</span>
-                  <div class="folder-actions">
-                    <button class="icon-btn-sm" 
-                      (click)="showCreateFileInFolder(item); $event.stopPropagation()" 
-                      title="New File in Folder">+📄</button>
-                    <button class="icon-btn-sm" 
-                      (click)="showCreateFolderInFolder(item); $event.stopPropagation()" 
-                      title="New Subfolder">+📁</button>
-                    <button class="icon-btn-sm del-btn" 
-                      (click)="deleteFolder(item); $event.stopPropagation()" 
-                      title="Delete Folder">🗑️</button>
+            <!-- Recursive tree rendering -->
+            <ng-container *ngTemplateOutlet="renderTree; context: { $implicit: files }"></ng-container>
+            
+            <ng-template #renderTree let-items>
+              <div *ngFor="let item of items">
+                <!-- FOLDER -->
+                <div *ngIf="item.isFolder" class="folder-item">
+                  <div class="folder-header" (click)="toggleFolder(item)">
+                    <span class="folder-icon">📁</span>
+                    <span class="folder-name">{{ item.name }}</span>
+                    <div class="folder-actions">
+                      <button class="icon-btn-sm" (click)="showCreateFileInFolder(item); $event.stopPropagation()" title="New File">+📄</button>
+                      <button class="icon-btn-sm" (click)="showCreateFolderInFolder(item); $event.stopPropagation()" title="New Folder">+📁</button>
+                      <button class="icon-btn-sm del-btn" (click)="deleteFolder(item); $event.stopPropagation()" title="Delete">🗑️</button>
+                    </div>
+                  </div>
+                  <div class="folder-children" *ngIf="item.expanded">
+                    <ng-container *ngTemplateOutlet="renderTree; context: { $implicit: item.children }"></ng-container>
                   </div>
                 </div>
-                <div class="folder-children" *ngIf="item.expanded">
-                  <div *ngFor="let child of item.children" 
-                      class="file-item" 
-                      [class.active]="selectedFile?.fileId === child.fileId" 
-                      (click)="selectFile(child)">
-                    <span class="file-icon">{{ getFileIcon(child) }}</span>
-                    <span class="file-name-txt">{{ child.name }}</span>
-                    <button class="del-btn" 
-                      *ngIf="!child.isFolder" 
-                      (click)="deleteFile(child); $event.stopPropagation()" 
-                      title="Delete">🗑️</button>
-                    <button class="del-btn" 
-                      *ngIf="child.isFolder" 
-                      (click)="deleteFolder(child); $event.stopPropagation()" 
-                      title="Delete Folder">🗑️</button>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- ROOT FILE -->
-              <div *ngIf="!item.isFolder" class="file-item" 
-                  [class.active]="selectedFile?.fileId === item.fileId" 
-                  (click)="selectFile(item)">
+                
+                <!-- FILE -->
+              <div *ngIf="!item.isFolder" class="file-item" [class.active]="selectedFile?.fileId === item.fileId" (click)="selectFile(item)">
                 <span class="file-icon">{{ getFileIcon(item) }}</span>
                 <span class="file-name-txt">{{ item.name }}</span>
-                <button class="del-btn" 
-                  (click)="deleteFile(item); $event.stopPropagation()" 
-                  title="Delete">🗑️</button>
+                  <div class="file-actions">
+                    <button class="rename-btn" (click)="renameFile(item); $event.stopPropagation()" title="Rename">✏️</button>
+                    <button class="del-btn" (click)="deleteFile(item); $event.stopPropagation()" title="Delete">🗑️</button>
+                  </div>
+                </div>
               </div>
-            </div>
+            </ng-template>
           </div>
         </div>
         <!-- Code Editor Panel -->
@@ -240,7 +213,7 @@
           *ngIf="activePanel === 'output'">
 
           <div class="stdin-section">
-            <label>Standard Input (stdin)</label>
+            <label>📥 STANDARD INPUT (stdin) — Enter program input here before running</label>
             <textarea [(ngModel)]="stdin"
               placeholder="Enter input for your program..."
               class="stdin-area" rows="3">

@@ -1498,4 +1498,27 @@ select.finput {
     color: var(--danger) !important;
   }
 }
+.file-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.file-item:hover .file-actions {
+  opacity: 1;
+}
+
+.rename-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px;
+  color: var(--text-muted);
+  
+  &:hover {
+    color: var(--primary);
+  }
+}
 @keyframes spin { to { transform: rotate(360deg); } }
