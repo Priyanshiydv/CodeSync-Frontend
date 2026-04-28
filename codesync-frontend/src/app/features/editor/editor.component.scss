@@ -1374,4 +1374,128 @@ select.finput {
     display: block;
   }
 }
+// ============================================
+// NESTED FOLDER STYLES
+// ============================================
+
+.folder-item {
+  margin-bottom: 2px;
+
+  .folder-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s;
+
+    &:hover {
+      background: var(--darker);
+      
+      .folder-actions {
+        opacity: 1;
+      }
+    }
+  }
+
+  .folder-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .folder-name {
+    flex: 1;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--warning);
+  }
+
+  .folder-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .folder-children {
+    padding-left: 24px;
+  }
+}
+
+.icon-btn-sm {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: all 0.15s;
+
+  &:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+}
+
+// File item styles (existing)
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  position: relative;
+
+  &:hover {
+    background: var(--darker);
+    .del-btn { opacity: 1; }
+  }
+
+  &.active {
+    background: rgba(108,99,255,0.15);
+    color: var(--primary);
+  }
+
+  .file-icon { font-size: 14px; flex-shrink: 0; }
+  .file-name-txt {
+    flex: 1;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.del-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  font-size: 12px;
+  padding: 2px;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+  color: var(--text-muted);
+
+  &:hover {
+    color: var(--danger);
+  }
+}
+.folder-header:hover .folder-actions .del-btn {
+  opacity: 1;
+}
+
+.del-btn {
+  opacity: 0;
+  transition: opacity 0.2s;
+  
+  &:hover {
+    color: var(--danger) !important;
+  }
+}
 @keyframes spin { to { transform: rotate(360deg); } }

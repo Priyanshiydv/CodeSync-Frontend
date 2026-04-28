@@ -154,7 +154,7 @@
                   {{ u.isActive ? 'Active' : 'Suspended' }}
                 </span>
               </td>
-              <td>{{ u.createdAt | date:'shortDate' }}</td>
+              <td>{{ u.createdAt | indianDate:'short' }}</td>
               <td>
                 <div class="action-btns">
                   <button *ngIf="u.isActive" class="btn-sm btn-warning" (click)="suspendUser(u.userId)">Suspend</button>
@@ -202,7 +202,7 @@
                   {{ p.visibility }}
                 </span>
               </td>
-              <td>{{ p.createdAt | date:'shortDate' }}</td>
+              <td>{{ p.createdAt | indianDate:'short' }}</td>
               <td>
                 <button class="btn-sm btn-danger" (click)="deleteProject(p.projectId)">Delete</button>
               </td>
@@ -234,7 +234,7 @@
               <td>{{ s.fileName }}</td>
               <td>{{ s.ownerName }}</td>
               <td>{{ s.participantCount }} / {{ s.maxParticipants }}</td>
-              <td>{{ s.createdAt | date:'shortTime' }}</td>
+              <td>{{ s.createdAt | indianDate:'time' }}</td>
               <td>
                 <button class="btn-sm btn-danger" (click)="endSession(s.sessionId)">End Session</button>
               </td>
@@ -274,8 +274,8 @@
                 </span>
               </td>
               <td>{{ e.executionTimeMs }}ms</td>
-              <td>{{ e.createdAt | date:'dd/MM/yy, h:mm:ss a' }}</td>
-              <td>{{ e.completedAt ? (e.completedAt | date:'dd/MM/yy, h:mm:ss a') : '—' }}</td>
+              <td>{{ e.createdAt | indianDate:'datetime' }}</td>
+              <td>{{ e.completedAt ? (e.completedAt | indianDate:'datetime') : '—' }}</td>
 
               <td>
                 <button class="btn-sm btn-warning" *ngIf="e.status === 'RUNNING' || e.status === 'QUEUED'" 
@@ -374,7 +374,7 @@
           <tbody>
             <tr *ngFor="let log of auditLogs">
               <td class="time-col">
-                {{ log.createdAt | date:'dd/MM/yy, h:mm:ss a' }}
+                {{ log.createdAt | indianDate:'datetime' }}
               </td>
               <td class="actor-col">
                 <span class="actor-badge">

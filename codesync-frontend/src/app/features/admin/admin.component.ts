@@ -7,11 +7,12 @@ import { AdminService } from '../../core/services/admin.service';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { IndianDatePipe } from '../../shared/pipes/date.pipe';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ThemeToggleComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ThemeToggleComponent, IndianDatePipe],
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.scss']
 })

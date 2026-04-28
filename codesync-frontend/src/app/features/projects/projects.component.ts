@@ -4,11 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ProjectService } from '../../core/services/project.service';
-
+import { IndianDatePipe } from '../../shared/pipes/date.pipe';
 @Component({
   selector: 'app-projects',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, IndianDatePipe],
   templateUrl: './projects.component.html',
   styleUrls: ['./projects.component.scss']
 })
@@ -37,8 +37,7 @@ export class ProjectsComponent implements OnInit {
 
   newMember = { userId: null, role: 'VIEWER' };
 
-  languages = ['Python','JavaScript','TypeScript','Java',
-    'CSharp','C','C++','Go','Rust','PHP','Ruby'];
+  languages = ['Python','Java','CSharp','C','C++'];
 
   totalStars = (acc: number, p: any) => acc + (p.starCount || 0);
   countPublic = (acc: number, p: any) =>
