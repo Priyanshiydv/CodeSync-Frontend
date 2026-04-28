@@ -130,7 +130,7 @@
           <div class="proj-stats">
             <span>⭐ {{ p.starCount || 0 }}</span>
             <span>🍴 {{ p.forkCount || 0 }}</span>
-            <span>{{ p.createdAt | date:'mediumDate' }}</span>
+            <span>{{ p.createdAt | indianDate:'datetime' }}</span>
           </div>
           <div class="proj-actions">
             <a class="btn-sm btn-open"
