@@ -1,15 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   
   // Different base URLs for different services
-  private authBaseUrl = 'http://localhost:5157/api/admin';
-  private projectBaseUrl = 'http://localhost:5257/api/admin';
-  private executionBaseUrl = 'http://localhost:5657/api/admin';
-  private collabBaseUrl = 'http://localhost:5457/api/admin';
+  private authBaseUrl      = `${environment.authApi}/api/admin`;
+  private projectBaseUrl   = `${environment.projectApi}/api/admin`;
+  private executionBaseUrl = `${environment.executionApi}/api/admin`;
+  private collabBaseUrl    = `${environment.collabApi}/api/admin`;
 
   constructor(private http: HttpClient) {}
 
@@ -97,7 +98,7 @@ export class AdminService {
   // ========== NOTIFICATIONS (NotificationService: 5857) ==========
     sendBroadcast(data: any): Observable<any> {
         // Use the existing 'bulk' endpoint
-        return this.http.post(`http://localhost:5857/api/notifications/bulk`, {
+        return this.http.post(`${environment.notificationApi}/api/notifications/bulk`, {
             recipientIds: [], // Empty = all users
             title: data.title,
             message: data.message,
@@ -111,19 +112,19 @@ export class AdminService {
     getAuditLogs(page: number = 1, pageSize: number = 50): Observable<any[]> {
         // FIX: Remove extra '/admin' from URL
         return this.http.get<any[]>(
-            `http://localhost:5157/api/admin/audit-logs?page=${page}&pageSize=${pageSize}`
+            `${environment.authApi}/api/admin/audit-logs?page=${page}&pageSize=${pageSize}`
         );
     }
 
     getAuditLogsByActor(actorId: number): Observable<any[]> {
         return this.http.get<any[]>(
-            `http://localhost:5157/api/admin/audit-logs/actor/${actorId}`
+            `${environment.authApi}/api/admin/audit-logs/actor/${actorId}`
         );
     }
 
     getAuditLogsByEntity(entityType: string, entityId: string): Observable<any[]> {
         return this.http.get<any[]>(
-            `http://localhost:5157/api/admin/audit-logs/entity/${entityType}/${entityId}`
+            `${environment.authApi}/api/admin/audit-logs/entity/${entityType}/${entityId}`
         );
     }
 }
