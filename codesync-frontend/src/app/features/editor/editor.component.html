@@ -85,7 +85,7 @@
           ⏹ Stop
         </button>
         <button class="tb-btn collab-btn" 
-          (click)="currentSession ? null : startSession()"
+          (click)="currentSession ? showSessionModal = true  : startSession()"
           [class.active]="currentSession">
           <span *ngIf="!currentSession">🔴 Start Session</span>
           <span *ngIf="currentSession">🟢 Session Active</span>

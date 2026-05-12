@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
+import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -15,7 +16,14 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private router: Router) { }
+    private router: Router,
+    private notificationService: NotificationService) {
+       // Reconnect SignalR on page refresh if already logged in
+    const token = localStorage.getItem('token');
+      if (token) {
+        this.notificationService.startSignalRConnection(token);
+      }
+    }
 
   register(data: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/register`, data);
@@ -44,6 +52,7 @@ export class AuthService {
         }
 
         this.userSubject.next(res);
+        this.notificationService.startSignalRConnection(res.token);
       }));
   }
 
@@ -54,6 +63,7 @@ export class AuthService {
     localStorage.removeItem('user');
     localStorage.removeItem('role');
     this.userSubject.next(null);
+    this.notificationService.stopSignalRConnection();
     this.router.navigate(['/home']);
   }
 
@@ -106,6 +116,7 @@ export class AuthService {
   // ADD — stores JWT token from OAuth2 callback
   storeToken(token: string): void {
     localStorage.setItem('token', token);
+    this.notificationService.startSignalRConnection(token);
     // Decode role from token and store it
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));

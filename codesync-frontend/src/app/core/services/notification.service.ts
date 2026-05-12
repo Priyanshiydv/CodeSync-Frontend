@@ -3,53 +3,80 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import * as signalR from '@microsoft/signalr';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private baseUrl = `${environment.notificationApi}/api/notifications`;
-  
+  private hubConnection: signalR.HubConnection | null = null;
+
   private unreadCountSubject = new BehaviorSubject<number>(0);
   unreadCount$ = this.unreadCountSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  // Get notifications for current user
+  // Connect to SignalR hub for real-time notifications
+  startSignalRConnection(token: string): void {
+    if (this.hubConnection) return;
+
+    this.hubConnection = new signalR.HubConnectionBuilder()
+      .withUrl(`${environment.notificationApi}/hubs/notifications`, {
+        accessTokenFactory: () => token
+      })
+      .withAutomaticReconnect()
+      .configureLogging(signalR.LogLevel.Warning)
+      .build();
+
+    // Listen for real-time unread count updates
+    this.hubConnection.on('UnreadCountUpdated', (count: number) => {
+      this.unreadCountSubject.next(count);
+    });
+
+    this.hubConnection
+      .start()
+      .then(() => {
+        const userId = this.getUserId();
+        this.hubConnection!.invoke('JoinNotificationGroup', userId.toString());
+        console.log('Notification SignalR connected');
+      })
+      .catch(err => console.error('Notification SignalR error:', err));
+  }
+
+  stopSignalRConnection(): void {
+    this.hubConnection?.stop();
+    this.hubConnection = null;
+  }
+
   getMyNotifications(): Observable<any[]> {
     const userId = this.getUserId();
     return this.http.get<any[]>(`${this.baseUrl}/recipient/${userId}`);
   }
 
-  // Get unread count
   getUnreadCount(): Observable<any> {
     const userId = this.getUserId();
     return this.http.get<any>(`${this.baseUrl}/unread/${userId}`)
       .pipe(tap(res => this.unreadCountSubject.next(res.unreadCount || 0)));
   }
 
-  // Mark single as read
   markAsRead(notificationId: number): Observable<any> {
     return this.http.put(`${this.baseUrl}/${notificationId}/read`, {});
   }
 
-  // Mark all as read
   markAllAsRead(): Observable<any> {
     const userId = this.getUserId();
     return this.http.put(`${this.baseUrl}/read-all/${userId}`, {})
       .pipe(tap(() => this.unreadCountSubject.next(0)));
   }
 
-  // Delete notification
   deleteNotification(notificationId: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/${notificationId}`);
   }
 
-  // Clear all read notifications
   clearRead(): Observable<any> {
     const userId = this.getUserId();
     return this.http.delete(`${this.baseUrl}/read/${userId}`);
   }
 
-  // Refresh unread count
   refreshUnreadCount(): void {
     this.getUnreadCount().subscribe();
   }
