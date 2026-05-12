@@ -8,6 +8,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 import { IndianDatePipe } from '../../shared/pipes/date.pipe';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-admin',
@@ -84,7 +85,7 @@ export class AdminComponent implements OnInit {
     });
 
     // Get user stats from AuthService
-    this.http.get<any>('http://localhost:5157/api/admin/stats').subscribe({
+    this.http.get<any>(`${environment.authApi}/api/admin/stats`).subscribe({
       next: (userStats: any) => {
         this.stats.totalUsers = userStats.totalUsers || 0;
       },
@@ -92,7 +93,7 @@ export class AdminComponent implements OnInit {
     });
 
     // Get session stats from CollabService
-    this.http.get<any[]>('http://localhost:5957/api/admin/sessions/active').subscribe({
+    this.http.get<any[]>(`${environment.collabApi}/api/admin/sessions/active`).subscribe({
       next: (sessions: any[]) => {
         this.stats.activeSessions = sessions.length || 0;
       },
@@ -100,7 +101,7 @@ export class AdminComponent implements OnInit {
     });
 
     // Get today's executions from ExecutionService
-    this.http.get<any[]>('http://localhost:5657/api/admin/executions').subscribe({
+    this.http.get<any[]>(`${environment.executionApi}/api/admin/executions`).subscribe({
       next: (executions: any[]) => {
         const today = new Date().toDateString();
         this.stats.executionsToday = executions.filter((e: any) => 
