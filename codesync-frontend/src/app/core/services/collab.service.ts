@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import * as signalR from '@microsoft/signalr';
+import { environment } from '../../../environments/environment';
 
 export interface EditOperation {
   type: 'insert' | 'delete' | 'full';
@@ -15,7 +16,8 @@ export interface EditOperation {
 
 @Injectable({ providedIn: 'root' })
 export class CollabService {
-  private baseUrl = 'http://localhost:5457/api/sessions';
+  private baseUrl = `${environment.collabApi}/api/sessions`;
+  
   private hubConnection: signalR.HubConnection | null = null;
   
   private receiveEditCallback: ((operation: EditOperation, content: string) => void) | null = null;
@@ -95,7 +97,7 @@ export class CollabService {
         this.hubConnection = null;
     }
 
-    const hubUrl = 'http://localhost:5457/hubs/collab';
+    const hubUrl = `${environment.collabApi}/hubs/collab`;
 
     this.hubConnection = new signalR.HubConnectionBuilder()
         .withUrl(hubUrl, {

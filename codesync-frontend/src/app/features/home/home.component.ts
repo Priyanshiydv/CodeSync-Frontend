@@ -21,8 +21,8 @@ export class HomeComponent implements OnInit {
   isLoggedIn = false;
 
   languages = [
-    'Python','JavaScript','Java','CSharp',
-    'C','C++','Go','Rust','TypeScript','PHP','Ruby'
+    'Python','Java','CSharp',
+    'C','C++',
   ];
 
   featureList = [

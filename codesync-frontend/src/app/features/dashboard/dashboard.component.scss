@@ -498,3 +498,28 @@ textarea.finput { resize: vertical; min-height: 80px; }
   align-items: center;
   gap: 12px;
 }
+/* Fix table text visibility */
+.data-table td,
+.data-table th {
+  color: var(--text-primary) !important;
+}
+
+.data-table td span,
+.data-table td .lang-tag,
+.data-table td .vis-badge {
+  color: inherit !important;
+}
+
+/* Fix role select dropdown */
+.role-select {
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.role-select option {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}

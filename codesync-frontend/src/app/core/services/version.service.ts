@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class VersionService {
-  private baseUrl = 'http://localhost:5557/api/versions';
+  private baseUrl = `${environment.versionApi}/api/versions`;
 
   constructor(private http: HttpClient) {}
 

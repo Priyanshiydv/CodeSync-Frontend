@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-
+import { IndianDatePipe } from '../../../shared/pipes/date.pipe';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, IndianDatePipe],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
