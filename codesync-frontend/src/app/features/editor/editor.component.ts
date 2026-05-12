@@ -11,14 +11,13 @@ import { ProjectService } from '../../core/services/project.service';
 import { NotificationComponent } from '../notification/notification.component';
 import { CollabService, EditOperation } from '../../core/services/collab.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { IndianDatePipe } from '../../shared/pipes/date.pipe';
 
 const LANGUAGE_MAP: Record<string, string> = {
-  'Python': 'python', 'JavaScript': 'javascript', 'TypeScript': 'typescript',
-  'Java': 'java', 'C': 'c', 'C++': 'cpp', 'Go': 'go', 'Rust': 'rust',
-  'Ruby': 'ruby', 'PHP': 'php', 'Kotlin': 'kotlin', 'Swift': 'swift', 'R': 'r',
-  '.py': 'python', '.js': 'javascript', '.ts': 'typescript', '.java': 'java',
-  '.cs': 'csharp', '.go': 'go', '.rs': 'rust', '.rb': 'ruby',
-  '.php': 'php', '.kt': 'kotlin', '.swift': 'swift',
+  'Python': 'python',
+  'Java': 'java', 'C': 'c', 'C++': 'cpp',
+  '.py': 'python', '.java': 'java',
+  '.cs': 'csharp',
 };
 
 function getMonacoLanguage(file: any, projectLanguage?: string): string {
@@ -32,7 +31,7 @@ function getMonacoLanguage(file: any, projectLanguage?: string): string {
 @Component({
   selector: 'app-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MonacoEditorModule, NotificationComponent],
+  imports: [CommonModule, FormsModule, RouterLink, MonacoEditorModule, NotificationComponent, IndianDatePipe],
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
@@ -95,6 +94,7 @@ export class EditorComponent implements OnInit, OnDestroy {
   newFileName = '';
   newFolderName = '';
   newFileLanguage = 'Python';
+  currentFolderId: number | null = null;
 
   // Collaboration
   currentSession: any = null;
@@ -107,8 +107,7 @@ export class EditorComponent implements OnInit, OnDestroy {
   joinSessionId = '';
   joinPassword = '';
 
-  languages = ['Python', 'JavaScript', 'TypeScript',
-    'Java', 'CSharp', 'C', 'C++', 'Go', 'Rust', 'PHP', 'Ruby'];
+  languages = ['Python', 'Java', 'CSharp', 'C', 'C++',];
 
   // Monaco
   monacoOptions: any = {
@@ -303,12 +302,16 @@ export class EditorComponent implements OnInit, OnDestroy {
     this.fileService.getFileTree(this.projectId).subscribe({
       next: (res: any[]) => {
         this.files = res;
+        console.log('File tree loaded:', this.files);
         if (res.length > 0 && !this.selectedFile) {
-          const firstFile = res.find((f: any) => !f.isFolder);
+          const firstFile = this.findFirstFile(res);
           if (firstFile) this.selectFile(firstFile);
         }
       },
-      error: () => this.files = []
+      error: (err) => {
+      console.error('Error loading files:', err);
+      this.files = [];
+      }
     });
   }
 
@@ -339,35 +342,41 @@ export class EditorComponent implements OnInit, OnDestroy {
 
   createFile() {
     if (!this.newFileName.trim()) return;
+    
     this.fileService.createFile({
       projectId: this.projectId,
       name: this.newFileName,
       path: this.newFileName,
       language: this.newFileLanguage,
-      content: ''
+      content: '',
+      parentFolderId: this.currentFolderId || null
     }).subscribe({
       next: () => {
         this.showCreateFileModal = false;
         this.newFileName = '';
+        this.currentFolderId = null;
         this.loadFiles();
       },
-      error: (err: any) => alert(err.error?.message || 'Failed!')
+      error: (err: any) => alert(err.error?.message || 'Failed to create file')
     });
   }
 
   createFolder() {
     if (!this.newFolderName.trim()) return;
+    
     this.fileService.createFolder({
       projectId: this.projectId,
       name: this.newFolderName,
-      path: this.newFolderName
+      path: this.newFolderName,
+      parentFolderId: this.currentFolderId || null
     }).subscribe({
       next: () => {
         this.showCreateFolderModal = false;
         this.newFolderName = '';
+        this.currentFolderId = null;
         this.loadFiles();
       },
-      error: (err: any) => alert(err.error?.message || 'Failed!')
+      error: (err: any) => alert(err.error?.message || 'Failed to create folder')
     });
   }
 
@@ -382,6 +391,64 @@ export class EditorComponent implements OnInit, OnDestroy {
         this.loadFiles();
       }
     });
+  }
+  // Delete folder with all contents
+  deleteFolder(folder: any) {
+    if (!confirm(`Delete folder "${folder.name}" and ALL its contents? This cannot be undone!`)) return;
+    
+    this.fileService.deleteFile(folder.fileId).subscribe({
+      next: () => {
+        if (this.selectedFile?.fileId === folder.fileId) {
+          this.selectedFile = null;
+          this.fileContent = '';
+        }
+        this.loadFiles();
+        alert('Folder deleted successfully');
+      },
+      error: (err: any) => alert(err.error?.message || 'Failed to delete folder')
+    });
+  }
+  showCreateFileInFolder(folder: any): void {
+    this.currentFolderId = folder.fileId;
+    this.showCreateFileModal = true;
+  }
+
+  showCreateFolderInFolder(folder: any): void {
+    this.currentFolderId = folder.fileId;
+    this.showCreateFolderModal = true;
+  }
+
+  toggleFolder(folder: any): void {
+    folder.expanded = !folder.expanded;
+  }
+  // Find first file in nested tree (for auto-select)
+  private findFirstFile(tree: any[]): any {
+    for (const item of tree) {
+      if (!item.isFolder) return item;
+      if (item.children && item.children.length > 0) {
+        const found = this.findFirstFile(item.children);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+  renameFile(file: any) {
+  const newName = prompt("Enter new name:", file.name);
+  if (newName && newName !== file.name) {
+    this.fileService.renameFile(file.fileId, { newName: newName }).subscribe({
+      next: () => {
+        this.loadFiles();
+        if (this.selectedFile?.fileId === file.fileId) {
+          this.selectedFile.name = newName;
+         }
+          alert('File renamed successfully!');
+        },
+        error: (err) => {
+          console.error('Rename error:', err);
+          alert('Failed to rename file: ' + (err.error?.message || 'Unknown error'));
+        }
+      });
+    }
   }
 
   // ─── Execution ────────────────────────────────────────────────────────────
@@ -435,8 +502,12 @@ export class EditorComponent implements OnInit, OnDestroy {
         this.executionService.onJobCompleted((id, stdout, stderr, exitCode) => {
           this.jobStatus = 'COMPLETED';
           this.isRunning = false;
-          this.output = stdout;
-          this.outputError = stderr;
+          if(!this.output && stdout){
+            this.output = stdout;
+          }
+          if(!this.outputError && stderr){
+            this.outputError = stderr;
+          }
           this.executionService.disconnectFromJob(jobId);
         });
 
@@ -872,6 +943,7 @@ export class EditorComponent implements OnInit, OnDestroy {
     };
     return icons[ext || ''] || '📄';
   }
+  
 
   logout() { this.auth.logout(); }
 }

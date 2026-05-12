@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class FileService {
 
-  private baseUrl = 'http://localhost:5357/api/files';
+  private baseUrl = `${environment.fileApi}/api/files`;
 
   constructor(private http: HttpClient) {}
 
@@ -14,8 +15,7 @@ export class FileService {
   }
 
   createFolder(data: any): Observable<any> {
-    return this.http.post<any>(
-      `${this.baseUrl}/createFolder`, data);
+    return this.http.post<any>(`${this.baseUrl}/createFolder`, data);
   }
 
   getFileById(id: number): Observable<any> {
@@ -23,8 +23,7 @@ export class FileService {
   }
 
   getFilesByProject(projectId: number): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.baseUrl}/project/${projectId}`);
+    return this.http.get<any[]>(`${this.baseUrl}/project/${projectId}`);
   }
 
   getFileContent(id: number): Observable<any> {
@@ -32,29 +31,23 @@ export class FileService {
   }
 
   getFileTree(projectId: number): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.baseUrl}/tree/${projectId}`);
+    return this.http.get<any[]>(`${this.baseUrl}/tree/${projectId}`);
   }
 
-  searchInProject(projectId: number,
-    query: string): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.baseUrl}/search/${projectId}?query=${query}`);
+  searchInProject(projectId: number, query: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/search/${projectId}?query=${query}`);
   }
 
   updateContent(id: number, data: any): Observable<any> {
-    return this.http.put<any>(
-      `${this.baseUrl}/${id}/content`, data);
+    return this.http.put<any>(`${this.baseUrl}/${id}/content`, data);
   }
 
   renameFile(id: number, data: any): Observable<any> {
-    return this.http.put<any>(
-      `${this.baseUrl}/${id}/rename`, data);
+    return this.http.put<any>(`${this.baseUrl}/${id}/rename`, data);
   }
 
   moveFile(id: number, data: any): Observable<any> {
-    return this.http.put<any>(
-      `${this.baseUrl}/${id}/move`, data);
+    return this.http.put<any>(`${this.baseUrl}/${id}/move`, data);
   }
 
   deleteFile(id: number): Observable<any> {
@@ -62,7 +55,6 @@ export class FileService {
   }
 
   restoreFile(id: number): Observable<any> {
-    return this.http.post<any>(
-      `${this.baseUrl}/${id}/restore`, {});
+    return this.http.post<any>(`${this.baseUrl}/${id}/restore`, {});
   }
 }

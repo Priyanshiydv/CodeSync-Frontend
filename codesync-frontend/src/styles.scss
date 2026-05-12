@@ -527,3 +527,45 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+/* Fix dropdown (select) text visibility */
+select.finput,
+select.form-control,
+.role-select,
+.branch-select,
+.diff-sel {
+  color: var(--text-primary) !important;
+  background-color: var(--bg-input) !important;
+  border: 1px solid var(--border) !important;
+}
+
+select.finput option,
+select.form-control option,
+.role-select option,
+.branch-select option,
+.diff-sel option {
+  color: var(--text-primary) !important;
+  background-color: var(--bg-card) !important;
+}
+
+/* Fix input text visibility in light mode */
+.finput,
+input,
+textarea {
+  color: var(--text-primary) !important;
+  background-color: var(--bg-input) !important;
+}
+
+.finput::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Fix modal content visibility */
+.modal .form-group label {
+  color: var(--text-secondary) !important;
+}
+
+.modal .modal-head h3 {
+  color: var(--text-primary) !important;
+}

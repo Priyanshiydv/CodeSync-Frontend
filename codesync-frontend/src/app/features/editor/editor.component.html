@@ -16,7 +16,7 @@
         <span>📁</span><span>Projects</span>
       </a>
       <a class="nav-item" routerLink="/profile">
-        <span>👤</span><span>Profile</span>
+        <span>👥</span><span>Profile</span>
       </a>
     </nav>
 
@@ -98,54 +98,56 @@
 
     <!-- Editor Body -->
     <div class="editor-body">
-
-      <!-- File Tree Panel -->
       <div class="file-panel">
-        <div class="panel-header">
-          <span>FILES</span>
-          <div class="panel-actions">
-            <button class="icon-btn"
-              title="New File"
-              (click)="showCreateFileModal = true">
-              +📄
-            </button>
-            <button class="icon-btn"
-              title="New Folder"
-              (click)="showCreateFolderModal = true">
-              +📁
-            </button>
+          <div class="panel-header">
+            <span>FILES</span>
+            <div class="panel-actions">
+              <button class="icon-btn" title="New File" (click)="showCreateFileModal = true">+📄</button>
+              <button class="icon-btn" title="New Folder" (click)="showCreateFolderModal = true">+📁</button>
+            </div>
+          </div>
+
+          <div class="file-list">
+            <div *ngIf="files.length === 0" class="no-files">
+              No files yet. Create one!
+            </div>
+            
+            <!-- Recursive tree rendering -->
+            <ng-container *ngTemplateOutlet="renderTree; context: { $implicit: files }"></ng-container>
+            
+            <ng-template #renderTree let-items>
+              <div *ngFor="let item of items">
+                <!-- FOLDER -->
+                <div *ngIf="item.isFolder" class="folder-item">
+                  <div class="folder-header" (click)="toggleFolder(item)">
+                    <span class="folder-icon">📁</span>
+                    <span class="folder-name">{{ item.name }}</span>
+                    <div class="folder-actions">
+                      <button class="icon-btn-sm" (click)="showCreateFileInFolder(item); $event.stopPropagation()" title="New File">+📄</button>
+                      <button class="icon-btn-sm" (click)="showCreateFolderInFolder(item); $event.stopPropagation()" title="New Folder">+📁</button>
+                      <button class="icon-btn-sm del-btn" (click)="deleteFolder(item); $event.stopPropagation()" title="Delete">🗑️</button>
+                    </div>
+                  </div>
+                  <div class="folder-children" *ngIf="item.expanded">
+                    <ng-container *ngTemplateOutlet="renderTree; context: { $implicit: item.children }"></ng-container>
+                  </div>
+                </div>
+                
+                <!-- FILE -->
+              <div *ngIf="!item.isFolder" class="file-item" [class.active]="selectedFile?.fileId === item.fileId" (click)="selectFile(item)">
+                <span class="file-icon">{{ getFileIcon(item) }}</span>
+                <span class="file-name-txt">{{ item.name }}</span>
+                  <div class="file-actions">
+                    <button class="rename-btn" (click)="renameFile(item); $event.stopPropagation()" title="Rename">✏️</button>
+                    <button class="del-btn" (click)="deleteFile(item); $event.stopPropagation()" title="Delete">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
           </div>
         </div>
-
-        <div class="file-list">
-          <div *ngIf="files.length === 0"
-            class="no-files">
-            No files yet. Create one!
-          </div>
-          <div class="file-item"
-            *ngFor="let f of files"
-            [class.active]="selectedFile?.fileId === f.fileId"
-            [class.folder]="f.isFolder"
-            (click)="selectFile(f)">
-            <span class="file-icon">
-              {{ getFileIcon(f) }}
-            </span>
-            <span class="file-name-txt">
-              {{ f.name }}
-            </span>
-            <button class="del-btn"
-              *ngIf="!f.isFolder"
-              (click)="deleteFile(f);
-                $event.stopPropagation()"
-              title="Delete">
-              🗑️
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Code Editor Panel -->
-      <div class="code-panel">
+        <!-- Code Editor Panel -->
+        <div class="code-panel">
         <div class="no-file-msg"
           *ngIf="!selectedFile">
           <div class="nf-icon">📄</div>
@@ -211,7 +213,7 @@
           *ngIf="activePanel === 'output'">
 
           <div class="stdin-section">
-            <label>Standard Input (stdin)</label>
+            <label>📥 STANDARD INPUT (stdin) — Enter program input here before running</label>
             <textarea [(ngModel)]="stdin"
               placeholder="Enter input for your program..."
               class="stdin-area" rows="3">
@@ -291,7 +293,7 @@
                   {{ s.message }}
                 </span>
                 <span class="snap-date">
-                  {{ s.createdAt | date:'short' }}
+                  {{ s.createdAt | indianDate:'short' }}
                 </span>
                 <span class="snap-branch">
                   🌿 {{ s.branch }}
@@ -395,7 +397,7 @@
             <div class="comment-item" *ngFor="let c of comments" [class.resolved]="c.isResolved">
               <div class="comment-header">
                 <span class="comment-line">Line {{ c.lineNumber }}</span>
-                <span class="comment-date">{{ c.createdAt | date:'short' }}</span>
+                <span class="comment-date">{{ c.createdAt | indianDate:'short' }}</span>
                 <span class="resolved-badge" *ngIf="c.isResolved">✅ Resolved</span>
               </div>
               <p class="comment-text">{{ c.content }}</p>
@@ -419,7 +421,7 @@
                 <div class="reply-item" *ngFor="let r of commentReplies[c.commentId]">
                   <div class="reply-header">
                     <span class="reply-author">{{ r.authorName || 'User' }}</span>
-                    <span class="reply-date">{{ r.createdAt | date:'short' }}</span>
+                    <span class="reply-date">{{ r.createdAt | indianDate:'short' }}</span>
                   </div>
                   <p class="reply-text">{{ r.content }}</p>
                 </div>

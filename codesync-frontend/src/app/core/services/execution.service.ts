@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import * as signalR from '@microsoft/signalr';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ExecutionService {
 
-  private baseUrl = 'http://localhost:5657/api/executions';
-  private hubUrl = 'http://localhost:5657/hubs/execution';
+  private baseUrl = `${environment.executionApi}/api/executions`;
+  private hubUrl = `${environment.executionApi}/hubs/execution`;
   // ADD — SignalR connection for real-time stdout streaming
   private connection: signalR.HubConnection | null = null;
 

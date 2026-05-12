@@ -14,7 +14,7 @@
         <span>📁</span><span>My Projects</span>
       </a>
       <a class="nav-item" routerLink="/profile">
-        <span>👤</span><span>Profile</span>
+        <span>👥</span><span>Profile</span>
       </a>
     </nav>
     <div class="sidebar-bottom">
@@ -129,7 +129,7 @@
           <span class="pstat">⭐ {{ p.starCount || 0 }}</span>
           <span class="pstat">🍴 {{ p.forkCount || 0 }}</span>
           <span class="pstat">
-            📅 {{ p.createdAt | date:'MMM d, y' }}
+            📅 {{ p.createdAt | indianDate:'date' }}
           </span>
         </div>
 
@@ -320,7 +320,7 @@
             User #{{ m.userId }}
           </span>
           <span class="member-joined">
-            Joined {{ m.joinedAt | date:'mediumDate' }}
+            Joined {{ m.joinedAt | indianDate:'date' }}
           </span>
         </div>
         <span class="role-tag"

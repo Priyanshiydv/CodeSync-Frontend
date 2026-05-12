@@ -6,11 +6,12 @@ import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationComponent } from '../notification/notification.component';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
-
+import { IndianDatePipe } from '../../shared/pipes/date.pipe';
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NotificationComponent, ThemeToggleComponent],
+  imports: [CommonModule, FormsModule, RouterLink, NotificationComponent, ThemeToggleComponent, IndianDatePipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -29,8 +30,7 @@ export class DashboardComponent implements OnInit {
     language: 'Python', visibility: 'PUBLIC'
   };
 
-  languages = ['Python','JavaScript','TypeScript','Java',
-    'CSharp','C','C++','Go','Rust','PHP','Ruby'];
+  languages = ['Python','Java','CSharp','C','C++'];
 
   constructor(
     private auth: AuthService,
@@ -57,7 +57,7 @@ export class DashboardComponent implements OnInit {
   loadMyProjects() {
     this.loading = true;
     this.http.get<any[]>(
-      `http://localhost:5257/api/projects/member`)
+      `${environment.projectApi}/api/projects/member`)
       .subscribe({
         next: (res) => {
           this.myProjects = res;
@@ -72,7 +72,7 @@ export class DashboardComponent implements OnInit {
 
   loadPublicProjects() {
     this.http.get<any[]>(
-      'http://localhost:5257/api/projects/public')
+      `${environment.projectApi}/api/projects/public`)
       .subscribe({
         next: (res) => this.publicProjects = res,
         error: () => this.publicProjects = []
@@ -90,7 +90,7 @@ export class DashboardComponent implements OnInit {
       return;
     }
     this.errorMessage = '';
-    this.http.post('http://localhost:5257/api/projects',
+    this.http.post(`${environment.projectApi}/api/projects`,
       this.newProject).subscribe({
       next: () => {
         this.showCreateModal = false;
@@ -106,13 +106,13 @@ export class DashboardComponent implements OnInit {
 
   starProject(id: number) {
     this.http.put(
-      `http://localhost:5257/api/projects/${id}/star`, {})
+      `${environment.projectApi}/api/projects/${id}/star`, {})
       .subscribe({ next: () => this.loadPublicProjects() });
   }
 
   forkProject(id: number) {
     this.http.post(
-      `http://localhost:5257/api/projects/${id}/fork`, {})
+      `${environment.projectApi}/api/projects/${id}/fork`, {})
       .subscribe({
         next: () => {
           this.loadMyProjects();
@@ -124,7 +124,7 @@ export class DashboardComponent implements OnInit {
   deleteProject(id: number) {
     if (!confirm('Delete this project?')) return;
     this.http.delete(
-      `http://localhost:5257/api/projects/${id}`)
+      `${environment.projectApi}/api/projects/${id}`)
       .subscribe({ next: () => this.loadMyProjects() });
   }
 
