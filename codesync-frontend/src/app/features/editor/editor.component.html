@@ -1,0 +1,632 @@
+
+<div class="editor-wrap">
+
+  <!-- Sidebar -->
+  <aside class="editor-sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-box">&lt;/&gt;</div>
+      <span>CodeSync</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item" routerLink="/dashboard">
+        <span>📊</span><span>Dashboard</span>
+      </a>
+      <a class="nav-item" routerLink="/projects">
+        <span>📁</span><span>Projects</span>
+      </a>
+      <a class="nav-item" routerLink="/profile">
+        <span>👥</span><span>Profile</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="user-ava">
+          {{ user?.fullName?.charAt(0) || 'D' }}
+        </div>
+        <div class="user-info">
+          <span class="uname">
+            {{ user?.fullName || 'Developer' }}
+          </span>
+          <span class="urole">Developer</span>
+        </div>
+      </div>
+      <button class="logout-btn" (click)="logout()">
+        🚪 Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Editor Main -->
+  <div class="editor-main">
+
+    <!-- Top Bar -->
+    <div class="editor-topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn"
+          (click)="showMobileSidebar = !showMobileSidebar">
+          ☰
+        </button>
+        <span class="project-name">
+          📁 {{ project?.name || 'Project' }}
+        </span>
+        <span class="sep">›</span>
+        <span class="file-name" *ngIf="selectedFile">
+          {{ getFileIcon(selectedFile) }}
+          {{ selectedFile.name }}
+        </span>
+        <span class="no-file" *ngIf="!selectedFile">
+          No file selected
+        </span>
+      </div>
+      <div class="topbar-actions">
+        <app-notification></app-notification>
+        <button class="tb-btn save-btn"
+          (click)="saveFile()"
+          [disabled]="!selectedFile || isSaving">
+          {{ isSaving ? '⏳ Saving...' : '💾 Save' }}
+        </button>
+        <button class="tb-btn snap-btn"
+          (click)="showSnapshotModal = true"
+          [disabled]="!selectedFile">
+          📸 Snapshot
+        </button>
+        <button class="tb-btn run-btn"
+          (click)="runCode()"
+          [disabled]="isRunning || !selectedFile">
+          <span *ngIf="!isRunning">▶ Run</span>
+          <span *ngIf="isRunning"
+            class="spinner-sm"></span>
+        </button>
+        <button class="tb-btn cancel-btn"
+          *ngIf="isRunning"
+          (click)="cancelExecution()">
+          ⏹ Stop
+        </button>
+        <button class="tb-btn collab-btn" 
+          (click)="currentSession ? null : startSession()"
+          [class.active]="currentSession">
+          <span *ngIf="!currentSession">🔴 Start Session</span>
+          <span *ngIf="currentSession">🟢 Session Active</span>
+        </button>
+        <button class="tb-btn join-btn" *ngIf="!currentSession" (click)="showJoinModal = true">
+          🔗 Join
+        </button>     
+      </div>
+    </div>
+
+    <!-- Editor Body -->
+    <div class="editor-body">
+      <div class="file-panel">
+          <div class="panel-header">
+            <span>FILES</span>
+            <div class="panel-actions">
+              <button class="icon-btn" title="New File" (click)="showCreateFileModal = true">+📄</button>
+              <button class="icon-btn" title="New Folder" (click)="showCreateFolderModal = true">+📁</button>
+            </div>
+          </div>
+
+          <div class="file-list">
+            <div *ngIf="files.length === 0" class="no-files">
+              No files yet. Create one!
+            </div>
+            
+            <!-- Recursive tree rendering -->
+            <ng-container *ngTemplateOutlet="renderTree; context: { $implicit: files }"></ng-container>
+            
+            <ng-template #renderTree let-items>
+              <div *ngFor="let item of items">
+                <!-- FOLDER -->
+                <div *ngIf="item.isFolder" class="folder-item">
+                  <div class="folder-header" (click)="toggleFolder(item)">
+                    <span class="folder-icon">📁</span>
+                    <span class="folder-name">{{ item.name }}</span>
+                    <div class="folder-actions">
+                      <button class="icon-btn-sm" (click)="showCreateFileInFolder(item); $event.stopPropagation()" title="New File">+📄</button>
+                      <button class="icon-btn-sm" (click)="showCreateFolderInFolder(item); $event.stopPropagation()" title="New Folder">+📁</button>
+                      <button class="icon-btn-sm del-btn" (click)="deleteFolder(item); $event.stopPropagation()" title="Delete">🗑️</button>
+                    </div>
+                  </div>
+                  <div class="folder-children" *ngIf="item.expanded">
+                    <ng-container *ngTemplateOutlet="renderTree; context: { $implicit: item.children }"></ng-container>
+                  </div>
+                </div>
+                
+                <!-- FILE -->
+              <div *ngIf="!item.isFolder" class="file-item" [class.active]="selectedFile?.fileId === item.fileId" (click)="selectFile(item)">
+                <span class="file-icon">{{ getFileIcon(item) }}</span>
+                <span class="file-name-txt">{{ item.name }}</span>
+                  <div class="file-actions">
+                    <button class="rename-btn" (click)="renameFile(item); $event.stopPropagation()" title="Rename">✏️</button>
+                    <button class="del-btn" (click)="deleteFile(item); $event.stopPropagation()" title="Delete">🗑️</button>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+        <!-- Code Editor Panel -->
+        <div class="code-panel">
+        <div class="no-file-msg"
+          *ngIf="!selectedFile">
+          <div class="nf-icon">📄</div>
+          <h3>No file selected</h3>
+          <p>Select a file from the left panel
+            or create a new one</p>
+          <button class="btn-create-file"
+            (click)="showCreateFileModal = true">
+            + Create File
+          </button>
+        </div>
+
+        <div class="code-area" *ngIf="selectedFile">
+          <div class="code-header">
+            <span class="code-lang">
+              {{ getFileIcon(selectedFile) }}
+              {{ selectedFile.name }}
+            </span>
+            <span class="code-size">
+              {{ fileContent.length }} chars
+            </span>
+          </div>
+          <!-- Monaco Editor -->
+          <div class="monaco-wrapper">
+            <ngx-monaco-editor
+              [options]="monacoOptions"
+              [(ngModel)]="fileContent"
+              (onInit)="onEditorInit($event)"
+               style="height: 100%; width: 100%; display: block;">
+            </ngx-monaco-editor>
+          </div>
+          <div class="editor-empty" *ngIf="!selectedFile">
+            <p>Select a file to start editing</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+
+        <!-- Panel Tabs -->
+        <div class="right-tabs">
+          <button class="rtab"
+            [class.active]="activePanel === 'output'"
+            (click)="activePanel = 'output'">
+            ▶ Output
+          </button>
+          <button class="rtab"
+            [class.active]="activePanel === 'versions'"
+            (click)="activePanel = 'versions';
+              loadSnapshots()">
+            📸 Versions
+          </button>
+          <button class="rtab"
+            [class.active]="activePanel === 'comments'"
+            (click)="activePanel = 'comments'">
+            💬 Comments
+          </button>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="right-content"
+          *ngIf="activePanel === 'output'">
+
+          <div class="stdin-section">
+            <label>📥 STANDARD INPUT (stdin) — Enter program input here before running</label>
+            <textarea [(ngModel)]="stdin"
+              placeholder="Enter input for your program..."
+              class="stdin-area" rows="3">
+            </textarea>
+          </div>
+
+          <div class="output-status"
+            *ngIf="jobStatus">
+            <span class="status-badge"
+              [class.running]="jobStatus === 'RUNNING' || jobStatus === 'QUEUED'"
+              [class.success]="jobStatus === 'COMPLETED'"
+              [class.failed]="jobStatus === 'FAILED' || jobStatus === 'TIMED_OUT'">
+              {{ jobStatus }}
+            </span>
+          </div>
+
+          <div class="output-box" *ngIf="isRunning">
+            <div class="running-indicator">
+              <div class="spinner-sm"></div>
+              <span>Executing in Docker sandbox...</span>
+            </div>
+          </div>
+
+          <div class="output-box stdout"
+            *ngIf="output && !isRunning">
+            <div class="output-label">
+              ✅ stdout
+            </div>
+            <pre>{{ output }}</pre>
+          </div>
+
+          <div class="output-box stderr"
+            *ngIf="outputError && !isRunning">
+            <div class="output-label">
+              ❌ stderr
+            </div>
+            <pre>{{ outputError }}</pre>
+          </div>
+
+          <div class="empty-output"
+            *ngIf="!output && !outputError
+              && !isRunning && !jobStatus">
+            <p>Click ▶ Run to execute your code</p>
+          </div>
+        </div>
+
+        <!-- Versions Panel -->
+        <div class="right-content"
+          *ngIf="activePanel === 'versions'">
+
+          <button class="btn-snap-create"
+            (click)="showSnapshotModal = true">
+            📸 Create Snapshot
+          </button>
+
+          <div class="empty-output"
+            *ngIf="snapshots.length === 0">
+            <p>No snapshots yet</p>
+          </div>
+          <!-- Branch Selector -->
+          <div class="branch-section">
+            <div class="branch-header">
+              <span class="branch-label">🌿 Branch:</span>
+              <select [(ngModel)]="currentBranch" (change)="switchBranch(currentBranch)" class="branch-select">
+                <option *ngFor="let b of branches" [value]="b">{{ b }}</option>
+              </select>
+              <button class="icon-btn" (click)="showCreateBranchModal = true" title="New Branch">+</button>
+              <button class="icon-btn" (click)="showTagModal = true" title="Add Tag">🏷️</button>
+            </div>
+          </div>
+
+          <div class="snap-list">
+            <div class="snap-item"
+              *ngFor="let s of snapshots">
+              <div class="snap-info">
+                <span class="snap-msg">
+                  {{ s.message }}
+                </span>
+                <span class="snap-date">
+                  {{ s.createdAt | indianDate:'short' }}
+                </span>
+                <span class="snap-branch">
+                  🌿 {{ s.branch }}
+                </span>
+                <span class="snap-tag"
+                  *ngIf="s.tag">
+                  🏷️ {{ s.tag }}
+                </span>
+              </div>
+              <button class="btn-restore"
+                (click)="restoreSnapshot(s.snapshotId)">
+                Restore
+              </button>
+            </div>
+          </div>
+
+          <!-- Diff -->
+          <div class="diff-section"
+            *ngIf="snapshots.length >= 2">
+            <h4>Compare Snapshots</h4>
+            <div class="diff-selects">
+              <select [(ngModel)]="selectedSnap1"
+                class="diff-sel">
+                <option [value]="null">
+                  Select snapshot 1
+                </option>
+                <option *ngFor="let s of snapshots"
+                  [value]="s.snapshotId">
+                  {{ s.message }}
+                </option>
+              </select>
+              <select [(ngModel)]="selectedSnap2"
+                class="diff-sel">
+                <option [value]="null">
+                  Select snapshot 2
+                </option>
+                <option *ngFor="let s of snapshots"
+                  [value]="s.snapshotId">
+                  {{ s.message }}
+                </option>
+              </select>
+            </div>
+            <button class="btn-diff"
+              (click)="diffSnapshots()">
+              Compare
+            </button>
+
+            <div class="diff-result"
+              *ngIf="diffResult">
+              <div class="diff-stats">
+                <span>
+                  {{ diffResult.totalChanges }} changes
+                </span>
+              </div>
+              <div class="diff-lines">
+                <div class="diff-line"
+                  *ngFor="let line of diffResult.lines"
+                  [class.inserted]="line.type === 'Inserted'"
+                  [class.deleted]="line.type === 'Deleted'">
+                  <span class="diff-sym">
+                    {{ line.type === 'Inserted' ? '+' :
+                       line.type === 'Deleted' ? '-' : ' ' }}
+                  </span>
+                  <span class="diff-text">
+                    {{ line.text }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comments Panel -->
+        <div class="right-content"
+          *ngIf="activePanel === 'comments'">
+
+          <!-- Add Comment -->
+          <div class="add-comment">
+            <div class="form-group">
+              <label>Line Number</label>
+              <input type="number"
+                [(ngModel)]="newComment.lineNumber"
+                class="comment-input" min="1"/>
+            </div>
+            <div class="form-group">
+              <label>Comment</label>
+              <textarea
+                [(ngModel)]="newComment.content"
+                placeholder="Add inline comment..."
+                class="comment-input" rows="3">
+              </textarea>
+            </div>
+            <button class="btn-add-comment"
+              (click)="addComment()">
+              + Add Comment
+            </button>
+          </div>
+
+          <!-- Comments List -->
+          <div class="comments-list">
+            <div class="comment-item" *ngFor="let c of comments" [class.resolved]="c.isResolved">
+              <div class="comment-header">
+                <span class="comment-line">Line {{ c.lineNumber }}</span>
+                <span class="comment-date">{{ c.createdAt | indianDate:'short' }}</span>
+                <span class="resolved-badge" *ngIf="c.isResolved">✅ Resolved</span>
+              </div>
+              <p class="comment-text">{{ c.content }}</p>
+              <div class="comment-actions">
+                <button class="ca-btn" (click)="toggleReply(c.commentId)">💬 Reply</button>
+                <button class="ca-btn" *ngIf="!c.isResolved" (click)="resolveComment(c.commentId)">✅ Resolve</button>
+                <button class="ca-btn ca-del" (click)="deleteComment(c.commentId)">🗑️</button>
+              </div>
+
+              <!-- Reply Form -->
+              <div class="reply-form" *ngIf="replyingTo === c.commentId">
+                <textarea [(ngModel)]="replyContent" placeholder="Write a reply..." rows="2"></textarea>
+                <div class="reply-actions">
+                  <button class="btn-sm" (click)="addReply(c)">Reply</button>
+                  <button class="btn-sm btn-cancel" (click)="replyingTo = null">Cancel</button>
+                </div>
+              </div>
+
+              <!-- Replies Section -->
+              <div class="replies-section" *ngIf="commentReplies[c.commentId] && commentReplies[c.commentId].length > 0">
+                <div class="reply-item" *ngFor="let r of commentReplies[c.commentId]">
+                  <div class="reply-header">
+                    <span class="reply-author">{{ r.authorName || 'User' }}</span>
+                    <span class="reply-date">{{ r.createdAt | indianDate:'short' }}</span>
+                  </div>
+                  <p class="reply-text">{{ r.content }}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="empty-output" *ngIf="comments.length === 0">
+              <p>No comments yet</p>
+            </div>
+          </div>
+         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create File Modal -->
+<div class="modal-overlay"
+  *ngIf="showCreateFileModal"
+  (click)="showCreateFileModal = false">
+  <div class="modal"
+    (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>📄 Create New File</h3>
+      <button class="close-btn"
+        (click)="showCreateFileModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>File Name</label>
+      <input type="text"
+        [(ngModel)]="newFileName"
+        placeholder="main.py"
+        class="finput"/>
+    </div>
+    <div class="form-group">
+      <label>Language</label>
+      <select [(ngModel)]="newFileLanguage"
+        class="finput">
+        <option *ngFor="let l of languages"
+          [value]="l">{{ l }}</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel"
+        (click)="showCreateFileModal = false">
+        Cancel
+      </button>
+      <button class="btn-create"
+        (click)="createFile()">
+        Create File
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Folder Modal -->
+<div class="modal-overlay"
+  *ngIf="showCreateFolderModal"
+  (click)="showCreateFolderModal = false">
+  <div class="modal"
+    (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>📁 Create New Folder</h3>
+      <button class="close-btn"
+        (click)="showCreateFolderModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Folder Name</label>
+      <input type="text"
+        [(ngModel)]="newFolderName"
+        placeholder="src"
+        class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel"
+        (click)="showCreateFolderModal = false">
+        Cancel
+      </button>
+      <button class="btn-create"
+        (click)="createFolder()">
+        Create Folder
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Snapshot Modal -->
+<div class="modal-overlay"
+  *ngIf="showSnapshotModal"
+  (click)="showSnapshotModal = false">
+  <div class="modal"
+    (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>📸 Create Snapshot</h3>
+      <button class="close-btn"
+        (click)="showSnapshotModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Commit Message</label>
+      <input type="text"
+        [(ngModel)]="snapshotMsg"
+        placeholder="Add login validation"
+        class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel"
+        (click)="showSnapshotModal = false">
+        Cancel
+      </button>
+      <button class="btn-create"
+        (click)="createSnapshot()">
+        Create Snapshot
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Branch Modal -->
+<div class="modal-overlay" *ngIf="showCreateBranchModal" (click)="showCreateBranchModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🌿 Create New Branch</h3>
+      <button class="close-btn" (click)="showCreateBranchModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Branch Name</label>
+      <input type="text" [(ngModel)]="newBranchName" placeholder="feature/new-feature" class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showCreateBranchModal = false">Cancel</button>
+      <button class="btn-create" (click)="createBranch()">Create Branch</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Tag Modal -->
+<div class="modal-overlay" *ngIf="showTagModal" (click)="showTagModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🏷️ Add Tag</h3>
+      <button class="close-btn" (click)="showTagModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Tag Name</label>
+      <input type="text" [(ngModel)]="newTagName" placeholder="v1.0.0" class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showTagModal = false">Cancel</button>
+      <button class="btn-create" (click)="tagCurrentSnapshot()">Add Tag</button>
+    </div>
+  </div>
+</div>
+
+<!-- Session Modal -->
+<div class="modal-overlay" *ngIf="showSessionModal" (click)="showSessionModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🔴 Collaboration Session</h3>
+      <button class="close-btn" (click)="showSessionModal = false">✕</button>
+    </div>
+    
+    <div class="session-info">
+      <label>Share this link:</label>
+      <div class="link-box">
+        <code>{{ sessionLink }}</code>
+        <button class="copy-btn" (click)="copySessionLink()">📋 Copy</button>
+      </div>
+    </div>
+
+    <div class="participants-section">
+      <h4>👥 Participants ({{ participants.length }})</h4>
+      <div class="participant-list">
+        <div class="participant-item" *ngFor="let p of participants">
+          <span class="participant-color" [style.background]="p.color"></span>
+          <span>User {{ p.userId }}</span>
+          <span class="participant-role">{{ p.role }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showSessionModal = false">Close</button>
+      <button class="btn-danger" (click)="endSession()">End Session</button>
+    </div>
+  </div>
+</div>
+
+<!-- Join Session Modal -->
+<div class="modal-overlay" *ngIf="showJoinModal" (click)="showJoinModal = false">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <h3>🔗 Join Session</h3>
+      <button class="close-btn" (click)="showJoinModal = false">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Session ID / Link</label>
+      <input type="text" [(ngModel)]="joinSessionId" placeholder="Enter session ID or paste link" class="finput"/>
+    </div>
+    <div class="form-group">
+      <label>Password (if required)</label>
+      <input type="password" [(ngModel)]="joinPassword" placeholder="Optional" class="finput"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="showJoinModal = false">Cancel</button>
+      <button class="btn-create" (click)="joinSession()">Join Session</button>
+    </div>
+  </div>
+</div>
