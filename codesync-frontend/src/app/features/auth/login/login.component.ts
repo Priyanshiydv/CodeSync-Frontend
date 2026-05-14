@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -16,6 +17,8 @@ export class LoginComponent {
   error = '';
   loading = false;
   showPass = false;
+
+  authApi = environment.authApi;
 
   constructor(private auth: AuthService) { }
 

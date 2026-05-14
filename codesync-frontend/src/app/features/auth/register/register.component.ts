@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-register',
@@ -23,6 +24,8 @@ export class RegisterComponent {
   success = '';
   loading = false;
   showPass = false;
+
+  authApi = environment.authApi;
 
   constructor(
     private auth: AuthService,
